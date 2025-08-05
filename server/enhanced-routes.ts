@@ -14,13 +14,17 @@ import { transcribeAudio, synthesizeVoice, processVoiceMessage, isAudioFile } fr
 import express from "express";
 import path from "path";
 import OpenAI from "openai";
+import { MedicalKnowledgeBase } from "./knowledge-base";
 
 // Enhanced chat completion with medical knowledge base
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || "demo_key"
 });
 
-// Medical knowledge base for CHM
+// Initialize the comprehensive medical knowledge base
+const knowledgeBase = new MedicalKnowledgeBase();
+
+// Legacy knowledge base for backward compatibility
 const medicalKnowledgeBase = {
   learningSocieties: {
     "Jane Addams": "Values-based learning focusing on social justice, community health, and healthcare advocacy.",
@@ -43,16 +47,33 @@ const medicalKnowledgeBase = {
 };
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
+  // Search the knowledge base for relevant information
+  const relevantKnowledge = knowledgeBase.search(message, 3);
+  
+  // Check if we have specific knowledge base content
+  if (relevantKnowledge.length > 0) {
+    const contextualResponse = knowledgeBase.generateResponse(message, relevantKnowledge);
+    return contextualResponse;
+  }
+
+  // Fallback to AI-generated response with knowledge base context
   const systemPrompt = `You are the Just In Time Medicine AI assistant for the College of Human Medicine at Michigan State University. You help medical students navigate their Shared Discovery Curriculum, learning societies, and academic resources.
 
-Learning Societies:
-- Jane Addams: ${medicalKnowledgeBase.learningSocieties["Jane Addams"]}
-- John Dewey: ${medicalKnowledgeBase.learningSocieties["John Dewey"]}
-- Abraham Flexner: ${medicalKnowledgeBase.learningSocieties["Abraham Flexner"]}
-- William Osler: ${medicalKnowledgeBase.learningSocieties["William Osler"]}
+Key CHM Learning Societies:
+- Jane Adams Society: Named after the social worker and Nobel Peace Prize winner
+- John Dewey Society: Named after the philosopher and educational reformer  
+- Justin Morrill Society: Named after the sponsor of the Morrill Act establishing land-grant universities
+- Dale Hale Williams Society: Named after the pioneering African American surgeon
 
 Academic Phases:
-- M1: ${medicalKnowledgeBase.academicPhases["M1"]}
+- M1 Foundation Phase: First year focusing on foundational sciences, anatomy, physiology, and basic clinical skills
+- MCE (Medical Clinical Experience): Clinical rotations in core specialties with patient care responsibilities
+- LCE (Longitudinal Clinical Experience): Advanced clinical training with continuity of care focus (years 3-4)
+
+Available Knowledge Topics:
+${knowledgeBase.getCategories().join(', ')}
+
+Respond helpfully about CHM curriculum, learning societies, academic support, research opportunities, board exam preparation, clinical training, and student wellness. If you don't have specific information, direct students to appropriate resources or suggest they speak with academic advisors.
 - MCE: ${medicalKnowledgeBase.academicPhases["MCE"]}
 - LCE: ${medicalKnowledgeBase.academicPhases["LCE"]}
 
@@ -551,16 +572,29 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Search and Suggestions Routes
+  // Search and Suggestions Routes with Knowledge Base Integration
   app.get("/api/search/suggestions", async (req, res) => {
     try {
-      const { q } = req.query;
-      if (!q || typeof q !== 'string') {
-        return res.json([]);
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        // Return popular suggestions when no query
+        return res.json(knowledgeBase.getSearchSuggestions().slice(0, 8));
       }
 
-      const suggestions = await enhancedStorage.getSearchSuggestions(q);
-      res.json(suggestions);
+      // Get knowledge base suggestions
+      const suggestions = knowledgeBase.getSearchSuggestions()
+        .filter(suggestion => 
+          suggestion.toLowerCase().includes(query.toLowerCase())
+        );
+
+      // Add dynamic suggestions based on knowledge base content
+      const knowledgeResults = knowledgeBase.search(query, 3);
+      const knowledgeSuggestions = knowledgeResults.map(item => item.title);
+
+      // Combine and deduplicate suggestions
+      const allSuggestions = [...new Set([...suggestions, ...knowledgeSuggestions])];
+
+      res.json(allSuggestions.slice(0, 6));
     } catch (error) {
       console.error("Error fetching search suggestions:", error);
       res.status(500).json({ message: "Internal server error" });
