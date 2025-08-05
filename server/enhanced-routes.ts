@@ -15,14 +15,16 @@ import express from "express";
 import path from "path";
 import OpenAI from "openai";
 import { MedicalKnowledgeBase } from "./knowledge-base";
+import { EnhancedKnowledgeBase } from "./enhanced-knowledge-base";
 
 // Enhanced chat completion with medical knowledge base
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || "demo_key"
 });
 
-// Initialize the comprehensive medical knowledge base
+// Initialize both knowledge bases
 const knowledgeBase = new MedicalKnowledgeBase();
+const enhancedKnowledgeBase = new EnhancedKnowledgeBase();
 
 // Legacy knowledge base for backward compatibility
 const medicalKnowledgeBase = {
@@ -47,10 +49,16 @@ const medicalKnowledgeBase = {
 };
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
-  // Search the knowledge base for relevant information
+  // First search the enhanced knowledge base for comprehensive content
+  const enhancedResults = enhancedKnowledgeBase.search(message, 5);
+  
+  if (enhancedResults.length > 0) {
+    return enhancedKnowledgeBase.generateResponse(message, enhancedResults);
+  }
+  
+  // Fallback to original knowledge base
   const relevantKnowledge = knowledgeBase.search(message, 3);
   
-  // Check if we have specific knowledge base content
   if (relevantKnowledge.length > 0) {
     const contextualResponse = knowledgeBase.generateResponse(message, relevantKnowledge);
     return contextualResponse;
@@ -577,24 +585,33 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
     try {
       const query = req.query.q as string;
       if (!query || query.length < 2) {
-        // Return popular suggestions when no query
-        return res.json(knowledgeBase.getSearchSuggestions().slice(0, 8));
+        // Return popular suggestions when no query, prioritizing enhanced content
+        const enhancedSuggestions = enhancedKnowledgeBase.getSearchSuggestions();
+        const originalSuggestions = knowledgeBase.getSearchSuggestions();
+        const combinedSuggestions = [...enhancedSuggestions, ...originalSuggestions];
+        return res.json([...new Set(combinedSuggestions)].slice(0, 10));
       }
 
-      // Get knowledge base suggestions
-      const suggestions = knowledgeBase.getSearchSuggestions()
+      // Get suggestions from enhanced knowledge base first
+      const enhancedSuggestions = enhancedKnowledgeBase.getSearchSuggestions()
         .filter(suggestion => 
           suggestion.toLowerCase().includes(query.toLowerCase())
         );
 
-      // Add dynamic suggestions based on knowledge base content
-      const knowledgeResults = knowledgeBase.search(query, 3);
-      const knowledgeSuggestions = knowledgeResults.map(item => item.title);
+      // Get suggestions from original knowledge base
+      const originalSuggestions = knowledgeBase.getSearchSuggestions()
+        .filter(suggestion => 
+          suggestion.toLowerCase().includes(query.toLowerCase())
+        );
 
-      // Combine and deduplicate suggestions
-      const allSuggestions = [...new Set([...suggestions, ...knowledgeSuggestions])];
+      // Add dynamic suggestions based on search results
+      const enhancedResults = enhancedKnowledgeBase.search(query, 3);
+      const dynamicSuggestions = enhancedResults.map(item => item.title);
 
-      res.json(allSuggestions.slice(0, 6));
+      // Combine and deduplicate suggestions, prioritizing enhanced content
+      const allSuggestions = [...new Set([...enhancedSuggestions, ...dynamicSuggestions, ...originalSuggestions])];
+
+      res.json(allSuggestions.slice(0, 8));
     } catch (error) {
       console.error("Error fetching search suggestions:", error);
       res.status(500).json({ message: "Internal server error" });
