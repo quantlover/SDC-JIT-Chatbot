@@ -129,18 +129,30 @@ export default function ChatWidget() {
   };
 
   const handleQuickAction = (action: typeof quickActions[0]) => {
+    if (chatMutation.isPending) return;
+    
     setInputValue(action.message);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    // Automatically send the quick action as a message
+    setTimeout(() => {
+      if (!chatMutation.isPending) {
+        chatMutation.mutate(action.message);
+        setInputValue('');
+      }
+    }, 100);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
+    if (chatMutation.isPending) return;
+    
     setInputValue(suggestion);
     setShowSuggestions(false);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    // Automatically send the suggestion as a message
+    setTimeout(() => {
+      if (!chatMutation.isPending) {
+        chatMutation.mutate(suggestion);
+        setInputValue('');
+      }
+    }, 100);
   };
 
   const handleInputChange = (value: string) => {
@@ -213,8 +225,9 @@ export default function ChatWidget() {
                   key={action.id}
                   variant="outline"
                   size="sm"
-                  className="text-xs h-7"
+                  className="text-xs h-7 hover:bg-primary hover:text-primary-foreground transition-colors"
                   onClick={() => handleQuickAction(action)}
+                  disabled={chatMutation.isPending}
                 >
                   {action.label}
                 </Button>
@@ -252,7 +265,7 @@ export default function ChatWidget() {
                       {message.metadata.resources.map((resource, index) => (
                         <a
                           key={index}
-                          href={resource.url}
+                          href={resource.url.startsWith('http') ? resource.url : `https://www.justintimemedicine.com${resource.url}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block text-xs text-primary hover:text-primary/80 underline flex items-center space-x-1"
@@ -272,8 +285,9 @@ export default function ChatWidget() {
                           key={index}
                           variant="outline"
                           size="sm"
-                          className="text-xs h-6"
+                          className="text-xs h-6 hover:bg-primary hover:text-primary-foreground transition-colors"
                           onClick={() => handleSuggestionClick(suggestion)}
+                          disabled={chatMutation.isPending}
                         >
                           {suggestion}
                         </Button>
