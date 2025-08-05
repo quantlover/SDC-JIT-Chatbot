@@ -7,6 +7,7 @@ import { VoiceInput } from './VoiceInput';
 import { FileUpload } from './FileUpload';
 import { MessageReactions } from './MessageReactions';
 import { ThemeToggle } from './ThemeToggle';
+import { MarkdownRenderer } from './MarkdownRenderer';
 import { 
   Send, 
   MessageSquare, 
@@ -389,7 +390,10 @@ export function EnhancedChatWidget() {
                   )}
                 >
                   <div className="space-y-2">
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                    <MarkdownRenderer 
+                      content={msg.content} 
+                      className="text-sm leading-relaxed" 
+                    />
                     
                     {msg.fileAttachments && msg.fileAttachments.length > 0 && (
                       <div className="flex flex-wrap gap-2">

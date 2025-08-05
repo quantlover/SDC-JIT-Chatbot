@@ -489,26 +489,64 @@ export class MedicalKnowledgeBase {
     ];
   }
 
-  // Generate contextual response
+  // Generate contextual response with proper formatting
   generateResponse(query: string, relevantItems: KnowledgeItem[]): string {
     if (relevantItems.length === 0) {
       return "I don't have specific information about that topic in the CHM curriculum database. Could you try rephrasing your question or asking about M1 foundation courses, MCE rotations, LCE clerkships, learning societies, or other aspects of the CHM Shared Discovery Curriculum?";
     }
 
     const primaryItem = relevantItems[0];
-    let response = primaryItem.content;
+    
+    // Format the main content with proper line breaks
+    let response = `## ${primaryItem.title}\n\n${primaryItem.content}`;
 
     // Add related information if multiple items found
     if (relevantItems.length > 1) {
-      response += "\n\n**Related Information:**\n";
-      relevantItems.slice(1, 3).forEach(item => {
-        response += `\n• **${item.title}**: ${item.content.substring(0, 150)}...`;
+      response += "\n\n---\n\n### Related Information:\n\n";
+      relevantItems.slice(1, 3).forEach((item, index) => {
+        const summary = this.extractSummary(item.content);
+        response += `**${item.title}**\n${summary}\n\n`;
       });
     }
 
-    // Add helpful tags
-    response += `\n\n**Related Topics**: ${primaryItem.tags.join(', ')}`;
+    // Add helpful tags in a cleaner format
+    const tags = primaryItem.tags.map(tag => `#${tag}`).join(' ');
+    response += `\n**Topics**: ${tags}`;
+
+    // Add phase information if available
+    if (primaryItem.phase !== 'General') {
+      response += ` | **Phase**: ${primaryItem.phase}`;
+    }
 
     return response;
+  }
+
+  // Extract a clean summary from content
+  private extractSummary(content: string): string {
+    // Find the first paragraph or section
+    const lines = content.split('\n');
+    let summary = '';
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine && !trimmedLine.startsWith('•') && !trimmedLine.startsWith('-')) {
+        summary = trimmedLine;
+        break;
+      }
+    }
+    
+    // If no good summary found, take first 120 characters
+    if (!summary) {
+      summary = content.substring(0, 120).trim();
+    }
+    
+    // Ensure it's not too long and ends properly
+    if (summary.length > 150) {
+      summary = summary.substring(0, 150).trim() + '...';
+    } else if (!summary.endsWith('.') && !summary.endsWith('...')) {
+      summary += '...';
+    }
+    
+    return summary;
   }
 }

@@ -121,3 +121,42 @@
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--foreground));
 }
+
+/* Enhanced message formatting */
+.message-content h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--primary));
+  display: block;
+}
+
+.message-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  display: block;
+}
+
+.message-content hr {
+  margin: 1rem 0;
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  display: block;
+}
+
+.message-content strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.message-content ul, .message-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+
+.message-content li {
+  margin: 0.25rem 0;
+}
