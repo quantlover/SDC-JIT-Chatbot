@@ -16,7 +16,7 @@ export interface ChatResponse {
 
 export async function generateChatResponse(
   message: string, 
-  conversationHistory: Array<{ role: string; content: string }> = []
+  conversationHistory: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = []
 ): Promise<ChatResponse> {
   // Check if OpenAI API key is properly configured
   if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes('*') || process.env.OPENAI_API_KEY.length < 20) {
