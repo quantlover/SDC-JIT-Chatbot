@@ -197,6 +197,18 @@ export function EnhancedChatWidget() {
     });
   };
 
+  const handleTagClick = (tag: string) => {
+    const tagQuery = `Tell me about CHM ${tag} topics`;
+    setMessage(tagQuery);
+    chatMutation.mutate({
+      message: tagQuery,
+      conversationId: currentConversationId,
+      userId,
+      messageType: 'chat',
+      fileAttachments: [],
+    });
+  };
+
   const createNewConversation = () => {
     setCurrentConversationId(null);
     setMessage('');
@@ -392,7 +404,8 @@ export function EnhancedChatWidget() {
                   <div className="space-y-2">
                     <MarkdownRenderer 
                       content={msg.content} 
-                      className="text-sm leading-relaxed" 
+                      className="text-sm leading-relaxed"
+                      onTagClick={handleTagClick}
                     />
                     
                     {msg.fileAttachments && msg.fileAttachments.length > 0 && (

@@ -407,6 +407,27 @@ export class MedicalKnowledgeBase {
 
   // Search knowledge base by query
   search(query: string, limit: number = 5): KnowledgeItem[] {
+    // Check if this is a tag-based search
+    const isTagSearch = query.includes('CHM') && query.includes('topics');
+    if (isTagSearch) {
+      // Extract the tag from the query
+      const tagMatch = query.match(/CHM (\w+) topics/i);
+      if (tagMatch) {
+        const searchTag = tagMatch[1].toLowerCase();
+        
+        // Find all items with matching tags
+        const tagResults = this.knowledge.filter(item => 
+          item.tags.some(tag => tag.toLowerCase().includes(searchTag))
+        );
+        
+        // Sort by priority and return more items for tag searches
+        return tagResults
+          .sort((a, b) => b.priority - a.priority)
+          .slice(0, Math.max(limit, 8));
+      }
+    }
+
+    // Regular search
     const searchTerms = query.toLowerCase().split(' ');
     
     const scored = this.knowledge.map(item => {
@@ -497,7 +518,35 @@ export class MedicalKnowledgeBase {
 
     const primaryItem = relevantItems[0];
     
-    // Format the main content with proper line breaks
+    // Check if this is a tag-based query to show multiple related items
+    const isTagQuery = query.toLowerCase().includes('topics') && query.includes('CHM');
+    
+    if (isTagQuery) {
+      // Show all related items for tag exploration
+      let response = `## Related CHM Topics\n\n`;
+      
+      relevantItems.forEach((item, index) => {
+        response += `### ${item.title}\n`;
+        response += `${this.extractSummary(item.content)}\n\n`;
+        
+        // Add phase info
+        if (item.phase !== 'General') {
+          response += `**Phase**: ${item.phase}\n`;
+        }
+        
+        // Add tags
+        const tags = item.tags.map(tag => `#${tag}`).join(' ');
+        response += `**Tags**: ${tags}\n\n`;
+        
+        if (index < relevantItems.length - 1) {
+          response += "---\n\n";
+        }
+      });
+      
+      return response;
+    }
+    
+    // Regular single-item response
     let response = `## ${primaryItem.title}\n\n${primaryItem.content}`;
 
     // Add related information if multiple items found
