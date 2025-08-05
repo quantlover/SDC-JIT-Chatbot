@@ -2,6 +2,9 @@
 
 This is a medical education chat application called "JustInTimeMedicine" designed for the College of Human Medicine's Shared Discovery Curriculum. The application provides an AI-powered chatbot interface that helps medical students navigate curriculum resources, learning societies, and academic support materials. It features a React frontend with shadcn/ui components, an Express.js backend with OpenAI integration, and PostgreSQL database with Drizzle ORM for data persistence.
 
+## Transfer Status
+The chatbot is production-ready and includes a comprehensive transfer guide (TRANSFER_GUIDE.md) for handoff to the Just In Time Medicine team. The system includes fallback responses, complete CHM curriculum knowledge base, and can be deployed via Replit or self-hosted.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
