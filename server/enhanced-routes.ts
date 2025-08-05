@@ -49,19 +49,45 @@ const medicalKnowledgeBase = {
 };
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
-  // First search the enhanced knowledge base for comprehensive content
-  const enhancedResults = enhancedKnowledgeBase.search(message, 5);
+  // Build context from recent conversation history
+  const recentMessages = conversationHistory.slice(-4); // Last 4 messages for context
+  const conversationContext = recentMessages
+    .map(msg => `${msg.role}: ${msg.content}`)
+    .join('\n');
   
+  // Create enhanced search query that includes conversation context
+  const contextualQuery = conversationContext 
+    ? `${conversationContext}\nCurrent question: ${message}`
+    : message;
+  
+  // Search enhanced knowledge base with context
+  const enhancedResults = enhancedKnowledgeBase.search(contextualQuery, 5);
+  
+  // If we have knowledge base results, check if this is a follow-up question
   if (enhancedResults.length > 0) {
+    const isFollowUp = recentMessages.length > 0 && 
+      recentMessages[recentMessages.length - 1]?.role === 'assistant';
+    
+    if (isFollowUp) {
+      // For follow-up questions, use AI to provide more specific answers
+      return await generateContextualFollowUp(message, conversationContext, enhancedResults);
+    }
+    
     return enhancedKnowledgeBase.generateResponse(message, enhancedResults);
   }
   
-  // Fallback to original knowledge base
-  const relevantKnowledge = knowledgeBase.search(message, 3);
+  // Fallback to original knowledge base with context
+  const relevantKnowledge = knowledgeBase.search(contextualQuery, 3);
   
   if (relevantKnowledge.length > 0) {
-    const contextualResponse = knowledgeBase.generateResponse(message, relevantKnowledge);
-    return contextualResponse;
+    const isFollowUp = recentMessages.length > 0 && 
+      recentMessages[recentMessages.length - 1]?.role === 'assistant';
+    
+    if (isFollowUp) {
+      return await generateContextualFollowUp(message, conversationContext, relevantKnowledge);
+    }
+    
+    return knowledgeBase.generateResponse(message, relevantKnowledge);
   }
 
   // Fallback to AI-generated response with knowledge base context
@@ -166,6 +192,58 @@ Log in through MyMSU or directly at canvas.msu.edu with your MSU credentials.`;
 • Clinical experiences and opportunities
 
 What would you like to know more about?`;
+  }
+}
+
+// Generate contextual follow-up responses using AI
+async function generateContextualFollowUp(message: string, conversationContext: string, knowledgeResults: any[]): Promise<string> {
+  try {
+    const relevantContent = knowledgeResults.map(item => 
+      `Title: ${item.title}\nContent: ${item.content}`
+    ).join('\n\n---\n\n');
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are a medical education assistant for CHM at Michigan State University. 
+          The user is asking a follow-up question based on previous conversation context.
+          Use the provided knowledge base content to give a specific, detailed answer that directly addresses their follow-up question.
+          Format your response with proper markdown, bullet points, and include relevant hashtags.
+          Be specific and detailed, focusing on the exact aspect they're asking about.`
+        },
+        {
+          role: "user",
+          content: `Previous conversation context:
+${conversationContext}
+
+Available knowledge base content:
+${relevantContent}
+
+Current follow-up question: ${message}
+
+Please provide a specific, detailed answer that directly addresses this follow-up question using the available knowledge.`
+        }
+      ],
+      max_tokens: 600,
+      temperature: 0.6
+    });
+
+    return completion.choices[0].message?.content || "I'd be happy to provide more specific information. Could you clarify what aspect you'd like to know more about?";
+  } catch (error) {
+    console.error('OpenAI API Error in follow-up:', error);
+    
+    // Fallback to knowledge base response
+    if (knowledgeResults.length > 0) {
+      if (knowledgeResults[0].generateResponse) {
+        return knowledgeResults[0].generateResponse(message, knowledgeResults);
+      } else {
+        return enhancedKnowledgeBase.generateResponse(message, knowledgeResults);
+      }
+    }
+    
+    return "I'd be happy to help with more details. Could you be more specific about what you'd like to know?";
   }
 }
 
