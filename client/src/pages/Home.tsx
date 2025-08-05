@@ -1,4 +1,4 @@
-import ChatWidget from "@/components/ChatWidget";
+import { EnhancedChatWidget } from "@/components/EnhancedChatWidget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,15 +138,15 @@ export default function Home() {
               <ul className="space-y-2 text-sm">
                 <li className="flex justify-between">
                   <span>M1 Foundation</span>
-                  <Badge variant="outline" size="sm">Year 1</Badge>
+                  <Badge variant="outline">Year 1</Badge>
                 </li>
                 <li className="flex justify-between">
                   <span>MCE Clinical</span>
-                  <Badge variant="outline" size="sm">Year 2</Badge>
+                  <Badge variant="outline">Year 2</Badge>
                 </li>
                 <li className="flex justify-between">
                   <span>LCE Clerkships</span>
-                  <Badge variant="outline" size="sm">Years 3-4</Badge>
+                  <Badge variant="outline">Years 3-4</Badge>
                 </li>
               </ul>
             </CardContent>
@@ -188,8 +188,8 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Chat Widget */}
-      <ChatWidget />
+      {/* Enhanced Chat Widget */}
+      <EnhancedChatWidget />
     </div>
   );
 }
