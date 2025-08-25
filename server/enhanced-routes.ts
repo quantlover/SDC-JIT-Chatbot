@@ -16,6 +16,7 @@ import path from "path";
 import OpenAI from "openai";
 import { MedicalKnowledgeBase } from "./knowledge-base";
 import { EnhancedKnowledgeBase } from "./enhanced-knowledge-base";
+import { testGenerator } from "./curriculum-testing";
 
 // Enhanced chat completion with medical knowledge base
 const openai = new OpenAI({ 
@@ -49,6 +50,12 @@ const medicalKnowledgeBase = {
 };
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
+  // Check if the message is a test generation request
+  const testGenerationResult = await handleTestGenerationRequest(message);
+  if (testGenerationResult) {
+    return testGenerationResult;
+  }
+
   // Build context from recent conversation history
   const recentMessages = conversationHistory.slice(-10); // Last 10 messages for context
   const conversationContext = recentMessages
@@ -190,6 +197,7 @@ Log in through MyMSU or directly at canvas.msu.edu with your MSU credentials.`;
 • Course resources and platforms
 • Student support services
 • Clinical experiences and opportunities
+• **Practice tests and assessments** - Try asking "Create a test for M1 week 3" or "Generate a quiz for MCE week 1"
 
 What would you like to know more about?`;
   }
@@ -244,6 +252,117 @@ Please provide a specific, detailed answer that directly addresses this follow-u
     }
     
     return "I'd be happy to help with more details. Could you be more specific about what you'd like to know?";
+  }
+}
+
+// Handle test generation requests from chat
+async function handleTestGenerationRequest(message: string): Promise<string | null> {
+  const lowerMessage = message.toLowerCase();
+  
+  // Check for test/quiz generation keywords
+  const isTestRequest = lowerMessage.includes('test') || lowerMessage.includes('quiz') || 
+                       lowerMessage.includes('practice') || lowerMessage.includes('assessment') ||
+                       lowerMessage.includes('exam');
+  
+  if (!isTestRequest) return null;
+  
+  // Extract phase and week information
+  const phaseMatch = lowerMessage.match(/\b(m1|mce|lce)\b/);
+  const weekMatch = lowerMessage.match(/week\s*(\d+)/);
+  
+  if (!phaseMatch) {
+    return `I can create practice tests for CHM curriculum! Please specify which phase you're in:
+
+**Available Phases:**
+• **M1** - Foundation Phase (Weeks 1-6 available)
+• **MCE** - Medical Clinical Experience (Weeks 1-6 available) 
+• **LCE** - Longitudinal Clinical Experience (Weeks 1-6 available)
+
+**Example requests:**
+• "Create a test for M1 week 3"
+• "Generate a quiz for MCE week 1"
+• "Make practice questions for LCE week 2"
+
+Which phase and week would you like a test for? #testing #curriculum #assessment`;
+  }
+  
+  const phase = phaseMatch[1].toUpperCase();
+  
+  if (!weekMatch) {
+    const availableWeeks = testGenerator.getAvailableWeeks(phase);
+    return `I can create a practice test for **${phase}**! Please specify which week:
+
+**Available weeks for ${phase}:** ${availableWeeks.join(', ')}
+
+**Example:** "Create a test for ${phase} week ${availableWeeks[0]}"
+
+Which week would you like a test for? #testing #${phase.toLowerCase()} #curriculum`;
+  }
+  
+  const week = parseInt(weekMatch[1]);
+  
+  try {
+    // Generate the test
+    const test = await testGenerator.generateTest(phase, week, {
+      numQuestions: 5, // Start with shorter tests for chat interface
+      difficulty: 'mixed',
+      questionTypes: ['multiple-choice', 'true-false'],
+      timeAllowed: 15
+    });
+    
+    if (!test) {
+      return `Sorry, I don't have test content available for ${phase} week ${week}. Available weeks for ${phase}: ${testGenerator.getAvailableWeeks(phase).join(', ')}
+
+Please try a different week! #testing #${phase.toLowerCase()}`;
+    }
+    
+    // Format the test for chat display
+    let response = `# ${test.title}\n\n`;
+    response += `**Phase:** ${test.phase} | **Week:** ${test.week} | **Questions:** ${test.totalQuestions} | **Time:** ${test.timeAllowed} minutes\n\n`;
+    
+    // Add curriculum week info
+    const weekData = testGenerator.getCurriculumWeek(phase, week);
+    if (weekData) {
+      response += `**Week Topics:** ${weekData.topics.join(', ')}\n\n`;
+    }
+    
+    response += `---\n\n`;
+    
+    // Add questions
+    test.questions.forEach((question, index) => {
+      response += `**Question ${index + 1}** (${question.difficulty})\n`;
+      response += `${question.question}\n\n`;
+      
+      if (question.type === 'multiple-choice' && question.options) {
+        question.options.forEach((option, optIndex) => {
+          const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
+          response += `${letter}. ${option}\n`;
+        });
+        response += `\n`;
+      }
+      
+      if (question.type === 'true-false') {
+        response += `A. True\nB. False\n\n`;
+      }
+      
+      response += `*Correct Answer:* ${question.type === 'multiple-choice' ? String.fromCharCode(65 + (question.correctAnswer as number)) : (question.correctAnswer ? 'A. True' : 'B. False')}\n`;
+      response += `*Explanation:* ${question.explanation}\n\n`;
+      response += `---\n\n`;
+    });
+    
+    response += `**Study Tips:**\n`;
+    response += `• Review the key topics: ${weekData?.topics.join(', ')}\n`;
+    response += `• Focus on understanding concepts, not just memorization\n`;
+    response += `• Practice applying knowledge to clinical scenarios\n\n`;
+    
+    response += `Want another test? Try: "Create a ${phase} week ${week + 1} test" or "Generate harder questions for ${phase} week ${week}"\n\n`;
+    response += `#testing #${phase.toLowerCase()} #week${week} #assessment #study`;
+    
+    return response;
+    
+  } catch (error) {
+    console.error('Error generating test:', error);
+    return `I encountered an error generating the test for ${phase} week ${week}. Please try again or contact support if the issue persists. #testing #error`;
   }
 }
 
@@ -658,6 +777,91 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Curriculum Testing Routes
+  app.post("/api/tests/generate", async (req, res) => {
+    try {
+      const { phase, week, numQuestions = 10, difficulty = 'mixed', questionTypes = ['multiple-choice', 'true-false'] } = req.body;
+      
+      if (!phase || !week) {
+        return res.status(400).json({ message: "Phase and week are required" });
+      }
+      
+      const test = await testGenerator.generateTest(phase, week, {
+        numQuestions,
+        difficulty,
+        questionTypes,
+        timeAllowed: numQuestions * 2 // 2 minutes per question
+      });
+      
+      if (!test) {
+        return res.status(404).json({ message: `No test content available for ${phase} week ${week}` });
+      }
+      
+      res.json(test);
+    } catch (error) {
+      console.error("Error generating test:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/tests/curriculum/:phase", async (req, res) => {
+    try {
+      const phase = req.params.phase.toUpperCase();
+      const availableWeeks = testGenerator.getAvailableWeeks(phase);
+      
+      if (availableWeeks.length === 0) {
+        return res.status(404).json({ message: `Phase ${phase} not found` });
+      }
+      
+      const weekData = availableWeeks.map(week => testGenerator.getCurriculumWeek(phase, week));
+      
+      res.json({
+        phase,
+        availableWeeks,
+        weekData: weekData.filter(Boolean)
+      });
+    } catch (error) {
+      console.error("Error fetching curriculum data:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/tests/curriculum/:phase/week/:week", async (req, res) => {
+    try {
+      const phase = req.params.phase.toUpperCase();
+      const week = parseInt(req.params.week);
+      
+      const weekData = testGenerator.getCurriculumWeek(phase, week);
+      
+      if (!weekData) {
+        return res.status(404).json({ message: `Week ${week} not found for phase ${phase}` });
+      }
+      
+      res.json(weekData);
+    } catch (error) {
+      console.error("Error fetching week data:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/tests/phases", async (req, res) => {
+    try {
+      const phases = testGenerator.getAllPhases();
+      const phaseInfo = phases.map(phase => ({
+        phase,
+        availableWeeks: testGenerator.getAvailableWeeks(phase),
+        description: phase === 'M1' ? 'Foundation Phase' : 
+                    phase === 'MCE' ? 'Medical Clinical Experience' : 
+                    phase === 'LCE' ? 'Longitudinal Clinical Experience' : phase
+      }));
+      
+      res.json(phaseInfo);
+    } catch (error) {
+      console.error("Error fetching phases:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Search and Suggestions Routes with Knowledge Base Integration
   app.get("/api/search/suggestions", async (req, res) => {
     try {
@@ -667,7 +871,7 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
         const enhancedSuggestions = enhancedKnowledgeBase.getSearchSuggestions();
         const originalSuggestions = knowledgeBase.getSearchSuggestions();
         const combinedSuggestions = [...enhancedSuggestions, ...originalSuggestions];
-        return res.json([...new Set(combinedSuggestions)].slice(0, 10));
+        return res.json(Array.from(new Set(combinedSuggestions)).slice(0, 10));
       }
 
       // Get suggestions from enhanced knowledge base first
@@ -687,7 +891,7 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
       const dynamicSuggestions = enhancedResults.map(item => item.title);
 
       // Combine and deduplicate suggestions, prioritizing enhanced content
-      const allSuggestions = [...new Set([...enhancedSuggestions, ...dynamicSuggestions, ...originalSuggestions])];
+      const allSuggestions = Array.from(new Set([...enhancedSuggestions, ...dynamicSuggestions, ...originalSuggestions]));
 
       res.json(allSuggestions.slice(0, 8));
     } catch (error) {
