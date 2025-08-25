@@ -336,7 +336,8 @@ Please try a different week! #testing #${phase.toLowerCase()}`;
       if (question.type === 'multiple-choice' && question.options) {
         question.options.forEach((option, optIndex) => {
           const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
-          response += `${letter}. ${option}\n`;
+          const isCorrect = optIndex === question.correctAnswer;
+          response += `${letter}. ${option} ${isCorrect ? '✓' : ''}\n`;
         });
         response += `\n`;
       }
@@ -345,8 +346,20 @@ Please try a different week! #testing #${phase.toLowerCase()}`;
         response += `A. True\nB. False\n\n`;
       }
       
-      response += `*Correct Answer:* ${question.type === 'multiple-choice' ? String.fromCharCode(65 + (question.correctAnswer as number)) : (question.correctAnswer ? 'A. True' : 'B. False')}\n`;
-      response += `*Explanation:* ${question.explanation}\n\n`;
+      response += `**Answer & Detailed Feedback:**\n`;
+      response += `*Correct Answer:* ${question.type === 'multiple-choice' ? String.fromCharCode(65 + (question.correctAnswer as number)) : (question.correctAnswer ? 'A. True' : 'B. False')}\n\n`;
+      
+      if (question.type === 'multiple-choice' && question.optionFeedback && question.options) {
+        response += `**Option Analysis:**\n`;
+        question.options.forEach((option, optIndex) => {
+          const letter = String.fromCharCode(65 + optIndex);
+          const feedback = question.optionFeedback![optIndex] || 'No feedback available';
+          response += `• **${letter}.** ${feedback}\n`;
+        });
+        response += `\n`;
+      }
+      
+      response += `*Overall Explanation:* ${question.explanation}\n\n`;
       response += `---\n\n`;
     });
     

@@ -21,6 +21,7 @@ export interface TestQuestion {
   options?: string[];
   correctAnswer: string | number;
   explanation: string;
+  optionFeedback?: string[]; // Detailed feedback for each option (why it's correct or incorrect)
   difficulty: 'easy' | 'medium' | 'hard';
   topic: string;
   learningObjective: string;
@@ -326,9 +327,29 @@ Assessment Focus: ${weekData.assessmentFocus.join(', ')}
 Requirements:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty level: ${difficulty === 'mixed' ? 'mix of easy, medium, and hard' : difficulty}
-- Format each question as JSON with: question, type, options (if multiple choice), correctAnswer, explanation, difficulty, topic, learningObjective
+- Format each question as JSON with: question, type, options (if multiple choice), correctAnswer, explanation, optionFeedback, difficulty, topic, learningObjective
+- For multiple choice questions, provide optionFeedback array with detailed reasoning for why each option is correct or incorrect
 - Make questions clinically relevant and test understanding, not just memorization
 - Include realistic clinical scenarios where appropriate
+- Ensure distractors (wrong answers) are plausible but clearly incorrect with educational explanations
+
+Example format for multiple choice:
+{
+  "question": "A 45-year-old patient presents with...",
+  "type": "multiple-choice",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correctAnswer": 1,
+  "explanation": "Overall explanation of the concept",
+  "optionFeedback": [
+    "Option A is incorrect because...",
+    "Option B is correct because...",
+    "Option C is incorrect because...",
+    "Option D is incorrect because..."
+  ],
+  "difficulty": "medium",
+  "topic": "Topic name",
+  "learningObjective": "Objective"
+}
 
 Return only a JSON array of question objects.`;
 
@@ -363,6 +384,7 @@ Return only a JSON array of question objects.`;
         options: q.options,
         correctAnswer: q.correctAnswer,
         explanation: q.explanation,
+        optionFeedback: q.optionFeedback,
         difficulty: q.difficulty || 'medium',
         topic: q.topic || weekData.topics[0],
         learningObjective: q.learningObjective || weekData.learningObjectives[0]
@@ -399,6 +421,12 @@ Return only a JSON array of question objects.`;
         ],
         correctAnswer: 0,
         explanation: `This question tests understanding of ${topic} as covered in ${weekData.title}.`,
+        optionFeedback: [
+          `Correct: This accurately describes ${topic} as a fundamental concept covered in this week's curriculum.`,
+          `Incorrect: This topic is directly related to and covered in ${weekData.title}.`,
+          `Incorrect: ${topic} is appropriate for this week's learning level and objectives.`,
+          `Incorrect: ${topic} is taught as part of this week's content, not as a prerequisite.`
+        ],
         difficulty: 'medium',
         topic,
         learningObjective: objective
