@@ -50,7 +50,7 @@ const medicalKnowledgeBase = {
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
   // Build context from recent conversation history
-  const recentMessages = conversationHistory.slice(-4); // Last 4 messages for context
+  const recentMessages = conversationHistory.slice(-10); // Last 10 messages for context
   const conversationContext = recentMessages
     .map(msg => `${msg.role}: ${msg.content}`)
     .join('\n');
