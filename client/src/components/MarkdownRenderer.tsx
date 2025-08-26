@@ -1,3 +1,5 @@
+import { InteractiveQuiz } from './InteractiveQuiz';
+
 interface MarkdownRendererProps {
   content: string;
   className?: string;
@@ -5,6 +7,16 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className = "", onTagClick }: MarkdownRendererProps) {
+  // Check if content contains an interactive quiz
+  const isQuizContent = content.includes('**Phase:**') && content.includes('**Question ') && content.includes('(easy|medium|hard)');
+  
+  if (isQuizContent) {
+    // Parse quiz data from the markdown content
+    const testData = parseQuizFromMarkdown(content);
+    if (testData) {
+      return <InteractiveQuiz testData={testData} />;
+    }
+  }
   const renderMarkdown = (text: string) => {
     const lines = text.split('\n');
     const elements: JSX.Element[] = [];
@@ -92,4 +104,99 @@ export function MarkdownRenderer({ content, className = "", onTagClick }: Markdo
       {renderMarkdown(content)}
     </div>
   );
+}
+
+// Parse quiz data from markdown content
+function parseQuizFromMarkdown(content: string): any {
+  try {
+    const lines = content.split('\n');
+    let title = '';
+    let phase = '';
+    let week = 0;
+    let totalQuestions = 0;
+    let timeAllowed = 15;
+    const questions: any[] = [];
+    
+    // Parse header info
+    const headerMatch = content.match(/# (.+)/);
+    if (headerMatch) title = headerMatch[1];
+    
+    const phaseMatch = content.match(/\*\*Phase:\*\* (\w+)/);
+    if (phaseMatch) phase = phaseMatch[1];
+    
+    const weekMatch = content.match(/\*\*Week:\*\* (\d+)/);
+    if (weekMatch) week = parseInt(weekMatch[1]);
+    
+    const questionsMatch = content.match(/\*\*Questions:\*\* (\d+)/);
+    if (questionsMatch) totalQuestions = parseInt(questionsMatch[1]);
+    
+    const timeMatch = content.match(/\*\*Time:\*\* (\d+) minutes/);
+    if (timeMatch) timeAllowed = parseInt(timeMatch[1]);
+    
+    // Parse questions
+    const questionBlocks = content.split(/\*\*Question \d+\*\*/);
+    questionBlocks.shift(); // Remove first empty element
+    
+    questionBlocks.forEach((block, index) => {
+      const questionText = block.match(/^[^(]*(?=\()/)?.[0]?.trim();
+      const difficulty = block.match(/\((easy|medium|hard)\)/)?.[1] || 'medium';
+      
+      // Extract options
+      const optionMatches = block.match(/[A-D]\. .+/g);
+      const options = optionMatches?.map(opt => opt.substring(3).replace(' ✓', '')) || [];
+      
+      // Find correct answer (look for checkmark or in feedback)
+      let correctAnswer = 0;
+      const correctMatch = block.match(/\*Correct Answer:\* ([A-D])/);
+      if (correctMatch) {
+        correctAnswer = correctMatch[1].charCodeAt(0) - 65; // Convert A,B,C,D to 0,1,2,3
+      }
+      
+      // Extract explanations
+      const explanationMatch = block.match(/\*Overall Explanation:\* (.+?)(?=\n|$)/);
+      const explanation = explanationMatch?.[1]?.trim() || '';
+      
+      // Extract option feedback
+      const optionFeedback: string[] = [];
+      const feedbackMatches = block.match(/• \*\*[A-D]\.\*\* (.+)/g);
+      if (feedbackMatches) {
+        feedbackMatches.forEach(match => {
+          const feedback = match.replace(/• \*\*[A-D]\.\*\* /, '');
+          optionFeedback.push(feedback);
+        });
+      }
+      
+      if (questionText && options.length > 0) {
+        questions.push({
+          id: `q${index + 1}`,
+          question: questionText,
+          type: 'multiple-choice',
+          options,
+          correctAnswer,
+          explanation,
+          optionFeedback: optionFeedback.length > 0 ? optionFeedback : undefined,
+          difficulty,
+          topic: 'Curriculum Topic',
+          learningObjective: 'Learning Objective'
+        });
+      }
+    });
+    
+    if (questions.length > 0) {
+      return {
+        title: title || 'Practice Quiz',
+        phase: phase || 'CHM',
+        week: week || 1,
+        totalQuestions: questions.length,
+        questions,
+        timeAllowed,
+        passingScore: 70
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error parsing quiz from markdown:', error);
+    return null;
+  }
 }

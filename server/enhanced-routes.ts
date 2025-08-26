@@ -316,7 +316,7 @@ Which week would you like a test for? #testing #${phase.toLowerCase()} #curricul
 Please try a different week! #testing #${phase.toLowerCase()}`;
     }
     
-    // Format the test for chat display
+    // Format the test for interactive display
     let response = `# ${test.title}\n\n`;
     response += `**Phase:** ${test.phase} | **Week:** ${test.week} | **Questions:** ${test.totalQuestions} | **Time:** ${test.timeAllowed} minutes\n\n`;
     
@@ -328,7 +328,7 @@ Please try a different week! #testing #${phase.toLowerCase()}`;
     
     response += `---\n\n`;
     
-    // Add questions
+    // Add questions for interactive quiz
     test.questions.forEach((question, index) => {
       response += `**Question ${index + 1}** (${question.difficulty})\n`;
       response += `${question.question}\n\n`;
@@ -336,8 +336,7 @@ Please try a different week! #testing #${phase.toLowerCase()}`;
       if (question.type === 'multiple-choice' && question.options) {
         question.options.forEach((option, optIndex) => {
           const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
-          const isCorrect = optIndex === question.correctAnswer;
-          response += `${letter}. ${option} ${isCorrect ? '✓' : ''}\n`;
+          response += `${letter}. ${option}\n`;
         });
         response += `\n`;
       }
@@ -346,8 +345,7 @@ Please try a different week! #testing #${phase.toLowerCase()}`;
         response += `A. True\nB. False\n\n`;
       }
       
-      response += `**Answer & Detailed Feedback:**\n`;
-      response += `*Correct Answer:* ${question.type === 'multiple-choice' ? String.fromCharCode(65 + (question.correctAnswer as number)) : (question.correctAnswer ? 'A. True' : 'B. False')}\n\n`;
+      response += `*Correct Answer:* ${question.type === 'multiple-choice' ? String.fromCharCode(65 + (question.correctAnswer as number)) : (question.correctAnswer ? 'A. True' : 'B. False')}\n`;
       
       if (question.type === 'multiple-choice' && question.optionFeedback && question.options) {
         response += `**Option Analysis:**\n`;
