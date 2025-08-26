@@ -316,7 +316,7 @@ export class CurriculumTestGenerator {
     difficulty: string,
     questionTypes: string[]
   ): Promise<TestQuestion[]> {
-    const prompt = `Create ${numQuestions} medical education test questions for the following curriculum week:
+    const prompt = `Create ${numQuestions} high-quality medical education test questions for the following curriculum week:
 
 Title: ${weekData.title}
 Topics: ${weekData.topics.join(', ')}
@@ -324,46 +324,67 @@ Learning Objectives: ${weekData.learningObjectives.join('; ')}
 Key Terms: ${weekData.keyTerms.join(', ')}
 Assessment Focus: ${weekData.assessmentFocus.join(', ')}
 
-Requirements:
+CRITICAL REQUIREMENTS for Educational Quality:
+
+1. QUESTION DESIGN:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty level: ${difficulty === 'mixed' ? 'mix of easy, medium, and hard' : difficulty}
-- Format each question as JSON with: question, type, options (if multiple choice), correctAnswer, explanation, optionFeedback, difficulty, topic, learningObjective
-- For multiple choice questions, provide optionFeedback array with detailed reasoning for why each option is correct or incorrect
-- Make questions clinically relevant and test understanding, not just memorization
-- Include realistic clinical scenarios where appropriate
-- Ensure distractors (wrong answers) are plausible but clearly incorrect with educational explanations
+- Create realistic clinical scenarios that test application, not just recall
+- Use patient presentations, lab values, imaging findings, or case scenarios
+- Avoid simple definition or fact-recall questions
+
+2. EXPLANATION REQUIREMENTS:
+- Overall explanation must be comprehensive (3-5 sentences minimum)
+- Connect the correct answer to underlying pathophysiology, mechanisms, or clinical reasoning
+- Explain WHY the concept is important in medical practice
+- Include relevant clinical pearls or teaching points
+- Reference how this applies to patient care or diagnosis
+
+3. OPTION FEEDBACK REQUIREMENTS (CRITICAL):
+Each option feedback must be educational and detailed:
+- For CORRECT options: Explain the mechanism, pathophysiology, or clinical reasoning that makes it correct
+- For INCORRECT options: Explain exactly why it's wrong, what condition/scenario it would apply to instead, and the key distinguishing features
+- Include specific medical facts, values, or criteria that differentiate options
+- Help students understand common misconceptions or similar conditions
+- Each feedback should be 2-3 sentences with specific medical details
+
+4. CLINICAL RELEVANCE:
+- Questions should reflect real medical scenarios students will encounter
+- Include appropriate medical terminology and professional language
+- Incorporate evidence-based medicine principles where applicable
+- Consider differential diagnoses, treatment decisions, or diagnostic workups
 
 Example format for multiple choice:
 {
-  "question": "A 45-year-old patient presents with...",
+  "question": "A 45-year-old patient with diabetes presents with acute onset of severe abdominal pain radiating to the back, nausea, and vomiting. Laboratory results show elevated serum lipase (450 U/L, normal <160) and glucose of 180 mg/dL. What is the most likely diagnosis?",
   "type": "multiple-choice",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "options": ["Acute cholecystitis", "Acute pancreatitis", "Peptic ulcer disease", "Diabetic ketoacidosis"],
   "correctAnswer": 1,
-  "explanation": "Overall explanation of the concept",
+  "explanation": "This presentation is classic for acute pancreatitis, particularly in a diabetic patient. The combination of severe epigastric pain radiating to the back, elevated lipase levels (>3x normal), and associated nausea/vomiting are pathognomonic. Diabetes is a known risk factor for pancreatitis due to potential triglyceride elevation and pancreatic microvascular changes. The elevated lipase is more specific than amylase for pancreatic inflammation.",
   "optionFeedback": [
-    "Option A is incorrect because...",
-    "Option B is correct because...",
-    "Option C is incorrect because...",
-    "Option D is incorrect because..."
+    "Acute cholecystitis typically presents with right upper quadrant pain, often triggered by fatty meals, with Murphy's sign on examination. While it can cause nausea, the pain rarely radiates to the back and lipase levels are usually normal. Ultrasound would show gallbladder wall thickening or stones.",
+    "Correct. Acute pancreatitis classically presents with severe epigastric pain radiating to the back, elevated pancreatic enzymes (lipase >3x normal), and systemic symptoms. In diabetics, this can be triggered by hypertriglyceridemia, medications, or idiopathic causes. The elevated lipase (450 U/L vs normal <160) confirms pancreatic inflammation.",
+    "Peptic ulcer disease typically causes burning epigastric pain that may improve with food or antacids. While it can cause nausea, the pain rarely radiates to the back and would not cause elevated lipase levels. Severe cases might present with bleeding (hematemesis/melena) or perforation symptoms.",
+    "Diabetic ketoacidosis presents with hyperglycemia (>250 mg/dL), ketosis, and metabolic acidosis. While this patient has diabetes, the glucose level (180 mg/dL) is not severely elevated, and the primary symptoms point to a pancreatic rather than metabolic cause. DKA would show ketones and anion gap acidosis on blood gas."
   ],
   "difficulty": "medium",
-  "topic": "Topic name",
-  "learningObjective": "Objective"
+  "topic": "Acute abdominal pain evaluation",
+  "learningObjective": "Diagnose acute pancreatitis using clinical presentation and laboratory findings"
 }
 
-Return only a JSON array of question objects.`;
+Return only a JSON array of question objects with this enhanced educational content.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are a medical education expert creating assessment questions for CHM students. Generate high-quality, clinically relevant questions that test understanding and application of knowledge."
+          content: "You are a senior medical education faculty member and board-certified physician creating rigorous assessment questions for Michigan State University College of Human Medicine students. Your questions must reflect real clinical scenarios that students will encounter in practice. Focus on clinical reasoning, differential diagnosis, and application of medical knowledge rather than rote memorization. Provide detailed, educational explanations that help students understand not just what is correct, but why other options are incorrect and how to distinguish between similar conditions. Your feedback should enhance learning and build clinical decision-making skills."
         },
         { role: "user", content: prompt }
       ],
-      max_tokens: 2000,
-      temperature: 0.7
+      max_tokens: 4000,
+      temperature: 0.8
     });
 
     const response = completion.choices[0]?.message?.content;
@@ -401,32 +422,25 @@ Return only a JSON array of question objects.`;
     week: number,
     numQuestions: number
   ): GeneratedTest {
-    // Generate basic questions as fallback
+    // Enhanced fallback questions with better educational content
     const questions: TestQuestion[] = [];
     
-    // Create questions based on topics and learning objectives
+    // Create clinically relevant questions based on topics and learning objectives
     for (let i = 0; i < Math.min(numQuestions, weekData.topics.length); i++) {
       const topic = weekData.topics[i];
       const objective = weekData.learningObjectives[i] || weekData.learningObjectives[0];
       
+      // Create more realistic clinical scenarios based on the topic
+      const clinicalScenarios = this.generateClinicalScenario(topic, weekData.title);
+      
       questions.push({
         id: `q${i + 1}`,
-        question: `Which of the following best describes ${topic.toLowerCase()}?`,
+        question: clinicalScenarios.question,
         type: 'multiple-choice',
-        options: [
-          `A key concept in ${topic}`,
-          `Not related to ${topic}`,
-          `An advanced topic beyond this week`,
-          `A prerequisite for ${topic}`
-        ],
-        correctAnswer: 0,
-        explanation: `This question tests understanding of ${topic} as covered in ${weekData.title}.`,
-        optionFeedback: [
-          `Correct: This accurately describes ${topic} as a fundamental concept covered in this week's curriculum.`,
-          `Incorrect: This topic is directly related to and covered in ${weekData.title}.`,
-          `Incorrect: ${topic} is appropriate for this week's learning level and objectives.`,
-          `Incorrect: ${topic} is taught as part of this week's content, not as a prerequisite.`
-        ],
+        options: clinicalScenarios.options,
+        correctAnswer: clinicalScenarios.correctAnswer,
+        explanation: `${topic} is a fundamental concept in ${weekData.title}. ${clinicalScenarios.explanation} Understanding this concept is crucial for medical practice as it directly impacts patient care, diagnosis, and treatment decisions. Students should focus on how this knowledge applies to real clinical scenarios and patient presentations.`,
+        optionFeedback: clinicalScenarios.optionFeedback,
         difficulty: 'medium',
         topic,
         learningObjective: objective
@@ -441,6 +455,73 @@ Return only a JSON array of question objects.`;
       questions,
       timeAllowed: 30,
       passingScore: 70
+    };
+  }
+
+  private generateClinicalScenario(topic: string, weekTitle: string) {
+    // Generate more realistic scenarios based on common medical topics
+    const scenarios: Record<string, {
+      question: string;
+      options: string[];
+      correctAnswer: number;
+      explanation: string;
+      optionFeedback: string[];
+    }> = {
+      "Cell structure": {
+        question: "A researcher studying cellular dysfunction notices abnormal protein accumulation in a patient's muscle biopsy. Which organelle is most likely impaired in this condition?",
+        options: ["Endoplasmic reticulum", "Nucleus", "Mitochondria", "Golgi apparatus"],
+        correctAnswer: 0,
+        explanation: "The endoplasmic reticulum (ER) is responsible for protein folding and quality control. When ER function is impaired, misfolded proteins accumulate, leading to cellular stress and dysfunction commonly seen in various diseases.",
+        optionFeedback: [
+          "Correct: The endoplasmic reticulum handles protein folding and quality control. ER stress occurs when protein folding capacity is overwhelmed, leading to accumulation of misfolded proteins. This is seen in conditions like myopathies, neurodegenerative diseases, and metabolic disorders.",
+          "Incorrect: While the nucleus controls protein synthesis through gene expression, it doesn't directly handle protein folding. Nuclear dysfunction would more likely present with transcriptional abnormalities rather than protein accumulation in the cytoplasm.",
+          "Incorrect: Mitochondrial dysfunction typically presents with energy metabolism problems, muscle weakness, and lactic acidosis rather than protein accumulation. Mitochondrial diseases affect ATP production and cellular respiration.",
+          "Incorrect: The Golgi apparatus modifies and packages proteins but isn't the primary site of protein folding. Golgi dysfunction would affect protein trafficking and post-translational modifications rather than causing protein accumulation."
+        ]
+      },
+      "Membrane dynamics": {
+        question: "A patient with cystic fibrosis has defective chloride transport across epithelial membranes. What type of membrane transport is primarily affected?",
+        options: ["Active transport", "Simple diffusion", "Facilitated diffusion", "Osmosis"],
+        correctAnswer: 0,
+        explanation: "Cystic fibrosis involves a defective CFTR protein that normally uses active transport to move chloride ions against their concentration gradient across epithelial membranes.",
+        optionFeedback: [
+          "Correct: The CFTR protein is an ATP-powered chloride channel that uses active transport to move chloride ions against their concentration gradient. This requires energy and is essential for proper mucus consistency in the lungs and digestive system.",
+          "Incorrect: Simple diffusion occurs down concentration gradients without protein assistance. CFTR specifically requires energy and protein-mediated transport, making this mechanism insufficient for chloride movement in epithelial cells.",
+          "Incorrect: While facilitated diffusion uses membrane proteins, it only moves substances down their concentration gradient without energy. CFTR requires ATP to move chloride against gradients, making this purely facilitated diffusion.",
+          "Incorrect: Osmosis specifically refers to water movement across membranes. While water balance is affected in CF due to altered chloride transport, the primary defect is in chloride ion transport, not osmosis itself."
+        ]
+      },
+      "Protein structure": {
+        question: "A patient presents with a connective tissue disorder affecting collagen. Which level of protein structure is most critical for collagen's mechanical strength?",
+        options: ["Primary structure", "Secondary structure", "Tertiary structure", "Quaternary structure"],
+        correctAnswer: 3,
+        explanation: "Collagen's quaternary structure involves three polypeptide chains wound together in a triple helix, providing the tensile strength essential for connective tissue function.",
+        optionFeedback: [
+          "Incorrect: Primary structure refers to the amino acid sequence. While glycine at every third position is important for collagen, the sequence alone doesn't provide mechanical strength without proper folding and assembly.",
+          "Incorrect: Secondary structure in collagen is primarily the polyproline II helix within each chain. While important, this doesn't provide the mechanical strength that comes from inter-chain interactions.",
+          "Incorrect: Tertiary structure refers to individual chain folding. Collagen chains have minimal tertiary structure compared to globular proteins, and strength comes from inter-chain rather than intra-chain interactions.",
+          "Correct: Quaternary structure involves three collagen chains (tropocollagen) wound together in a triple helix stabilized by hydrogen bonds and cross-links. This multi-chain structure provides the tremendous tensile strength that makes collagen ideal for connective tissues like tendons and ligaments."
+        ]
+      }
+    };
+
+    // Return a matching scenario or a generic one
+    return scenarios[topic] || {
+      question: `In the context of ${weekTitle.toLowerCase()}, which of the following best represents the clinical application of ${topic.toLowerCase()}?`,
+      options: [
+        `Direct clinical application in patient care`,
+        `Purely theoretical concept with no clinical relevance`,
+        `Only relevant in research settings`,
+        `A historical concept no longer used in medicine`
+      ],
+      correctAnswer: 0,
+      explanation: `${topic} has direct clinical applications that are essential for understanding patient pathophysiology and treatment approaches.`,
+      optionFeedback: [
+        `Correct: ${topic} has direct clinical applications that help healthcare providers understand disease mechanisms, interpret diagnostic tests, and make treatment decisions. Medical education emphasizes the practical application of basic science concepts.`,
+        `Incorrect: All concepts taught in medical school have clinical relevance. ${topic} provides foundational knowledge that helps explain disease processes and guide clinical reasoning in patient care.`,
+        `Incorrect: While ${topic} is studied in research, it has immediate clinical applications. Medical education focuses on clinically relevant science that practicing physicians use daily.`,
+        `Incorrect: ${topic} represents current understanding in medicine and continues to be relevant for modern medical practice. Medical curricula emphasize contemporary, evidence-based concepts.`
+      ]
     };
   }
 
