@@ -213,7 +213,7 @@ How can I assist you today?`,
                         ? "text-white/70" 
                         : "text-muted-foreground"
                     )}>
-                      {msg.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 </div>
