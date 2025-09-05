@@ -74,11 +74,19 @@ I can help you with:
 What would you like to know about CHM or your medical education?`;
   }
 
-  // Build context from recent conversation history
-  const recentMessages = conversationHistory.slice(-8); // Last 8 messages for context
+  // Build context from recent conversation history with better coherence
+  const recentMessages = conversationHistory.slice(-6); // Last 6 messages for better focus
   const conversationContext = recentMessages
     .map(msg => `${msg.role}: ${msg.content}`)
     .join('\n');
+  
+  // For brief questions, use conversation context to understand intent
+  const isBriefQuestion = message.split(' ').length <= 3;
+  let enhancedMessage = message;
+  
+  if (isBriefQuestion && conversationContext) {
+    enhancedMessage = `Previous context: ${conversationContext}\nCurrent question: ${message}`;
+  }
   
   // Skip knowledge base search temporarily - go directly to AI for better alignment
   // This ensures responses match the user's actual questions
@@ -127,7 +135,7 @@ Remember: Match your response directly to what the student is asking about. Don'
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
-        { role: "user", content: message }
+        { role: "user", content: enhancedMessage }
       ],
       max_tokens: 800,
       temperature: 0.4,

@@ -113,6 +113,18 @@ How can I assist you today?`,
     chatMutation.mutate(userMessage);
   };
 
+  const handleTagClick = (tag: string) => {
+    const tagQuery = `Tell me about CHM ${tag} topics`;
+    setMessage(tagQuery);
+    // Auto-send the hashtag query after a brief delay
+    setTimeout(() => {
+      if (!chatMutation.isPending) {
+        chatMutation.mutate(tagQuery);
+        setMessage('');
+      }
+    }, 100);
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -205,7 +217,10 @@ How can I assist you today?`,
                       : "bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-border/20"
                   )}>
                     <div className="prose prose-sm max-w-none text-inherit">
-                      <MarkdownRenderer content={msg.content} />
+                      <MarkdownRenderer 
+                        content={msg.content} 
+                        onTagClick={handleTagClick}
+                      />
                     </div>
                     <div className={cn(
                       "text-xs mt-2",
