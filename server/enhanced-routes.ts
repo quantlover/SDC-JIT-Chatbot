@@ -80,80 +80,8 @@ What would you like to know about CHM or your medical education?`;
     .map(msg => `${msg.role}: ${msg.content}`)
     .join('\n');
   
-  // For specific questions, search knowledge bases
-  const enhancedResults = enhancedKnowledgeBase.search(message, 3);
-  
-  // Only use knowledge base results if they're actually relevant (higher relevance threshold)
-  if (enhancedResults.length > 0) {
-    // Check if results are actually relevant by looking for specific key terms match
-    const messageTerms = message.toLowerCase().split(' ').filter(term => term.length > 2 && term !== 'chm');
-    const relevantResults = enhancedResults.filter(result => {
-      const resultText = `${result.title} ${result.tags.join(' ')} ${result.category}`.toLowerCase();
-      // Require at least 2 meaningful terms to match, or 1 very specific term
-      let matchCount = 0;
-      let hasSpecificMatch = false;
-      
-      messageTerms.forEach(term => {
-        if (resultText.includes(term)) {
-          matchCount++;
-          // Check for specific, meaningful matches
-          if (term.length > 4 || ['society', 'societies', 'learning', 'phase', 'curriculum'].includes(term)) {
-            hasSpecificMatch = true;
-          }
-        }
-      });
-      
-      return hasSpecificMatch && (matchCount >= 2 || messageTerms.length <= 2);
-    });
-    
-    if (relevantResults.length > 0) {
-      const isFollowUp = recentMessages.length > 0 && 
-        recentMessages[recentMessages.length - 1]?.role === 'assistant';
-      
-      if (isFollowUp) {
-        return await generateContextualFollowUp(message, conversationContext, relevantResults);
-      }
-      
-      return enhancedKnowledgeBase.generateResponse(message, relevantResults);
-    }
-  }
-  
-  // Fallback to original knowledge base
-  const relevantKnowledge = knowledgeBase.search(message, 2);
-  
-  if (relevantKnowledge.length > 0) {
-    // Check relevance for original knowledge base too  
-    const messageTerms = message.toLowerCase().split(' ').filter(term => term.length > 2 && term !== 'chm');
-    const relevantResults = relevantKnowledge.filter(result => {
-      const resultText = `${result.title} ${result.tags.join(' ')} ${result.category}`.toLowerCase();
-      // Require at least 2 meaningful terms to match, or 1 very specific term
-      let matchCount = 0;
-      let hasSpecificMatch = false;
-      
-      messageTerms.forEach(term => {
-        if (resultText.includes(term)) {
-          matchCount++;
-          // Check for specific, meaningful matches
-          if (term.length > 4 || ['society', 'societies', 'learning', 'phase', 'curriculum'].includes(term)) {
-            hasSpecificMatch = true;
-          }
-        }
-      });
-      
-      return hasSpecificMatch && (matchCount >= 2 || messageTerms.length <= 2);
-    });
-    
-    if (relevantResults.length > 0) {
-      const isFollowUp = recentMessages.length > 0 && 
-        recentMessages[recentMessages.length - 1]?.role === 'assistant';
-      
-      if (isFollowUp) {
-        return await generateContextualFollowUp(message, conversationContext, relevantResults);
-      }
-      
-      return knowledgeBase.generateResponse(message, relevantResults);
-    }
-  }
+  // Skip knowledge base search temporarily - go directly to AI for better alignment
+  // This ensures responses match the user's actual questions
 
   // Fallback to AI-generated response with knowledge base context
   const systemPrompt = `You are the CHM AI Assistant for Michigan State University College of Human Medicine. Your primary goal is to provide direct, specific answers to student questions about the CHM Shared Discovery Curriculum.
