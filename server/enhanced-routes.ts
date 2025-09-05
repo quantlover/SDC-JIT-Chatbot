@@ -56,45 +56,103 @@ async function generateEnhancedChatResponse(message: string, conversationHistory
     return testGenerationResult;
   }
 
+  // Check for simple greetings or general help requests first
+  const lowerMessage = message.toLowerCase().trim();
+  const isSimpleGreeting = /^(hello|hi|hey|good morning|good afternoon|good evening)(\s|$|!|\?|\.)/i.test(lowerMessage);
+  const isGeneralHelp = /^(can you help|help me|how can you help|what can you do|how do you work)(\s|$|!|\?|\.)/i.test(lowerMessage);
+  
+  if (isSimpleGreeting || isGeneralHelp) {
+    return `Hello! I'm the CHM AI Assistant, here to help you with questions about the College of Human Medicine curriculum, learning societies, academic resources, and medical education.
+
+I can help you with:
+• **Curriculum Information**: M1, MCE, and LCE phase details
+• **Learning Societies**: Jane Adams, John Dewey, Justin Morrill, and Dale Hale Williams societies
+• **Academic Resources**: Study materials, board exam prep, research opportunities
+• **Student Support**: Academic achievement services, wellness resources
+• **Quick Tests**: Generate practice quizzes for any curriculum topic
+
+What would you like to know about CHM or your medical education?`;
+  }
+
   // Build context from recent conversation history
-  const recentMessages = conversationHistory.slice(-10); // Last 10 messages for context
+  const recentMessages = conversationHistory.slice(-8); // Last 8 messages for context
   const conversationContext = recentMessages
     .map(msg => `${msg.role}: ${msg.content}`)
     .join('\n');
   
-  // Create enhanced search query that includes conversation context
-  const contextualQuery = conversationContext 
-    ? `${conversationContext}\nCurrent question: ${message}`
-    : message;
+  // For specific questions, search knowledge bases
+  const enhancedResults = enhancedKnowledgeBase.search(message, 3);
   
-  // Search enhanced knowledge base with context
-  const enhancedResults = enhancedKnowledgeBase.search(contextualQuery, 5);
-  
-  // If we have knowledge base results, check if this is a follow-up question
+  // Only use knowledge base results if they're actually relevant (higher relevance threshold)
   if (enhancedResults.length > 0) {
-    const isFollowUp = recentMessages.length > 0 && 
-      recentMessages[recentMessages.length - 1]?.role === 'assistant';
+    // Check if results are actually relevant by looking for specific key terms match
+    const messageTerms = message.toLowerCase().split(' ').filter(term => term.length > 2 && term !== 'chm');
+    const relevantResults = enhancedResults.filter(result => {
+      const resultText = `${result.title} ${result.tags.join(' ')} ${result.category}`.toLowerCase();
+      // Require at least 2 meaningful terms to match, or 1 very specific term
+      let matchCount = 0;
+      let hasSpecificMatch = false;
+      
+      messageTerms.forEach(term => {
+        if (resultText.includes(term)) {
+          matchCount++;
+          // Check for specific, meaningful matches
+          if (term.length > 4 || ['society', 'societies', 'learning', 'phase', 'curriculum'].includes(term)) {
+            hasSpecificMatch = true;
+          }
+        }
+      });
+      
+      return hasSpecificMatch && (matchCount >= 2 || messageTerms.length <= 2);
+    });
     
-    if (isFollowUp) {
-      // For follow-up questions, use AI to provide more specific answers
-      return await generateContextualFollowUp(message, conversationContext, enhancedResults);
+    if (relevantResults.length > 0) {
+      const isFollowUp = recentMessages.length > 0 && 
+        recentMessages[recentMessages.length - 1]?.role === 'assistant';
+      
+      if (isFollowUp) {
+        return await generateContextualFollowUp(message, conversationContext, relevantResults);
+      }
+      
+      return enhancedKnowledgeBase.generateResponse(message, relevantResults);
     }
-    
-    return enhancedKnowledgeBase.generateResponse(message, enhancedResults);
   }
   
-  // Fallback to original knowledge base with context
-  const relevantKnowledge = knowledgeBase.search(contextualQuery, 3);
+  // Fallback to original knowledge base
+  const relevantKnowledge = knowledgeBase.search(message, 2);
   
   if (relevantKnowledge.length > 0) {
-    const isFollowUp = recentMessages.length > 0 && 
-      recentMessages[recentMessages.length - 1]?.role === 'assistant';
+    // Check relevance for original knowledge base too  
+    const messageTerms = message.toLowerCase().split(' ').filter(term => term.length > 2 && term !== 'chm');
+    const relevantResults = relevantKnowledge.filter(result => {
+      const resultText = `${result.title} ${result.tags.join(' ')} ${result.category}`.toLowerCase();
+      // Require at least 2 meaningful terms to match, or 1 very specific term
+      let matchCount = 0;
+      let hasSpecificMatch = false;
+      
+      messageTerms.forEach(term => {
+        if (resultText.includes(term)) {
+          matchCount++;
+          // Check for specific, meaningful matches
+          if (term.length > 4 || ['society', 'societies', 'learning', 'phase', 'curriculum'].includes(term)) {
+            hasSpecificMatch = true;
+          }
+        }
+      });
+      
+      return hasSpecificMatch && (matchCount >= 2 || messageTerms.length <= 2);
+    });
     
-    if (isFollowUp) {
-      return await generateContextualFollowUp(message, conversationContext, relevantKnowledge);
+    if (relevantResults.length > 0) {
+      const isFollowUp = recentMessages.length > 0 && 
+        recentMessages[recentMessages.length - 1]?.role === 'assistant';
+      
+      if (isFollowUp) {
+        return await generateContextualFollowUp(message, conversationContext, relevantResults);
+      }
+      
+      return knowledgeBase.generateResponse(message, relevantResults);
     }
-    
-    return knowledgeBase.generateResponse(message, relevantKnowledge);
   }
 
   // Fallback to AI-generated response with knowledge base context
