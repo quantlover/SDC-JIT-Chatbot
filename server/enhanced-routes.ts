@@ -489,7 +489,7 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
       if (!currentConversationId) {
         const conversation = await enhancedStorage.createConversation({
           title: message.slice(0, 50) + (message.length > 50 ? '...' : ''),
-          userId: req.body.userId || 'anonymous'
+          userId: req.body.userId || null
         });
         currentConversationId = conversation.id;
       }
@@ -530,7 +530,7 @@ export async function registerEnhancedRoutes(app: Express): Promise<Server> {
       // Track analytics
       await enhancedStorage.trackEvent({
         eventType: 'chat_message',
-        userId: req.body.userId,
+        userId: req.body.userId || null,
         data: { 
           conversationId: currentConversationId,
           messageLength: message.length,
