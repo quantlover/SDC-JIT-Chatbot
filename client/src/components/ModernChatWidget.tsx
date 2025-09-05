@@ -29,7 +29,7 @@ interface Message {
 interface ChatResponse {
   userMessage: Message;
   assistantMessage: Message;
-  conversationId: string;
+  conversation: { id: string };
 }
 
 export function ModernChatWidget() {
@@ -52,8 +52,9 @@ export function ModernChatWidget() {
       return response.json() as Promise<ChatResponse>;
     },
     onSuccess: (data) => {
+      // Add both user and assistant messages to the conversation
       setMessages(prev => [...prev, data.userMessage, data.assistantMessage]);
-      setConversationId(data.conversationId);
+      setConversationId(data.conversation.id);
       scrollToBottom();
     },
     onError: (error) => {

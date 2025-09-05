@@ -81,11 +81,21 @@ What would you like to know about CHM or your medical education?`;
     .join('\n');
   
   // For brief questions, use conversation context to understand intent
-  const isBriefQuestion = message.split(' ').length <= 3;
+  const isBriefQuestion = message.split(' ').length <= 4;
   let enhancedMessage = message;
   
   if (isBriefQuestion && conversationContext) {
-    enhancedMessage = `Previous context: ${conversationContext}\nCurrent question: ${message}`;
+    // Extract key topics and context from recent conversation
+    const lastAssistantMessage = recentMessages.filter(msg => msg.role === 'assistant').pop();
+    const lastUserMessage = recentMessages.filter(msg => msg.role === 'user').pop();
+    
+    if (lastAssistantMessage && lastUserMessage) {
+      enhancedMessage = `Context: The user previously asked "${lastUserMessage.content}" and I responded with information about ${lastAssistantMessage.content.substring(0, 200)}...
+      
+Current brief question: "${message}"
+
+Please understand this brief question in the context of our conversation and provide a relevant response. If they're asking for "harder quiz", "easier quiz", "more questions", etc., use the previous topic and difficulty context.`;
+    }
   }
   
   // Skip knowledge base search temporarily - go directly to AI for better alignment
