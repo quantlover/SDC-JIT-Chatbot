@@ -16,7 +16,7 @@ import path from "path";
 import OpenAI from "openai";
 import { MedicalKnowledgeBase } from "./knowledge-base";
 import { EnhancedKnowledgeBase } from "./enhanced-knowledge-base";
-import { testGenerator } from "./curriculum-testing";
+import { testGenerator, generateTopicTest } from "./curriculum-testing";
 
 // Enhanced chat completion with medical knowledge base
 const openai = new OpenAI({ 

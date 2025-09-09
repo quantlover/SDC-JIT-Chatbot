@@ -829,6 +829,88 @@ export const curriculumData: Record<string, CurriculumWeek[]> = {
   ]
 };
 
+// Function to generate tests from medical topic test banks
+export function generateTopicTest(topic: string, difficulty: 'easy' | 'medium' | 'difficult', numQuestions: number = 5): GeneratedTest | null {
+  const normalizedTopic = topic.toLowerCase();
+  
+  // Map common topic variations to test bank keys
+  const topicMap: Record<string, string> = {
+    'cardio': 'cardiovascular',
+    'cardiovascular': 'cardiovascular',
+    'heart': 'cardiovascular',
+    'respiratory': 'respiratory',
+    'pulmonary': 'respiratory',
+    'lung': 'respiratory',
+    'renal': 'renal',
+    'kidney': 'renal',
+    'nephrology': 'renal',
+    'endocrine': 'endocrine',
+    'hormone': 'endocrine',
+    'diabetes': 'endocrine',
+    'gastrointestinal': 'gastrointestinal',
+    'gi': 'gastrointestinal',
+    'digestive': 'gastrointestinal',
+    'liver': 'gastrointestinal',
+    'nervous': 'nervous',
+    'neuro': 'nervous',
+    'brain': 'nervous',
+    'cns': 'nervous',
+    'immunology': 'immunology',
+    'immune': 'immunology',
+    'antibody': 'immunology',
+    'microbiology': 'microbiology',
+    'micro': 'microbiology',
+    'bacteria': 'microbiology',
+    'virus': 'microbiology',
+    'biochemistry': 'biochemistry',
+    'metabolism': 'biochemistry',
+    'enzyme': 'biochemistry',
+    'pharmacology': 'pharmacology',
+    'drug': 'pharmacology',
+    'medication': 'pharmacology'
+  };
+
+  const mappedTopic = topicMap[normalizedTopic];
+  if (!mappedTopic || !medicalTopicTestBanks[mappedTopic]) {
+    return null;
+  }
+
+  const topicBank = medicalTopicTestBanks[mappedTopic];
+  const difficultyQuestions = topicBank[difficulty];
+  
+  if (!difficultyQuestions || difficultyQuestions.length === 0) {
+    return null;
+  }
+
+  // Shuffle and select questions
+  const shuffled = [...difficultyQuestions].sort(() => Math.random() - 0.5);
+  const selectedQuestions = shuffled.slice(0, Math.min(numQuestions, shuffled.length));
+
+  // If we need more questions, fill from other difficulties
+  if (selectedQuestions.length < numQuestions) {
+    const allDifficulties = ['easy', 'medium', 'difficult'] as const;
+    for (const diff of allDifficulties) {
+      if (diff !== difficulty && selectedQuestions.length < numQuestions) {
+        const additionalQuestions = topicBank[diff] || [];
+        const shuffledAdditional = [...additionalQuestions].sort(() => Math.random() - 0.5);
+        const needed = numQuestions - selectedQuestions.length;
+        selectedQuestions.push(...shuffledAdditional.slice(0, needed));
+      }
+    }
+  }
+
+  return {
+    title: `${mappedTopic.charAt(0).toUpperCase() + mappedTopic.slice(1)} Assessment (${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Level)`,
+    phase: 'Medical Education',
+    topic: mappedTopic,
+    difficulty,
+    totalQuestions: selectedQuestions.length,
+    questions: selectedQuestions,
+    timeAllowed: selectedQuestions.length * 2, // 2 minutes per question
+    passingScore: 70
+  };
+}
+
 export class CurriculumTestGenerator {
   constructor() {}
 
