@@ -821,24 +821,96 @@ async function handleTestGenerationRequest(message: string): Promise<string | nu
   
   if (!isTestRequest) return null;
   
+  // Check for topic-based test requests first
+  const topicKeywords = ['biochemistry', 'cardio', 'cardiovascular', 'respiratory', 'renal', 'endocrine', 'gastrointestinal', 'gi', 'nervous', 'neuro', 'immunology', 'microbiology', 'pharmacology'];
+  const difficultyKeywords = ['easy', 'medium', 'difficult', 'hard'];
+  
+  let detectedTopic = '';
+  let detectedDifficulty: 'easy' | 'medium' | 'difficult' = 'medium';
+  
+  // Find topic in message
+  for (const topic of topicKeywords) {
+    if (lowerMessage.includes(topic)) {
+      detectedTopic = topic;
+      break;
+    }
+  }
+  
+  // Find difficulty in message
+  for (const diff of difficultyKeywords) {
+    if (lowerMessage.includes(diff)) {
+      detectedDifficulty = diff === 'hard' ? 'difficult' : diff as 'easy' | 'medium' | 'difficult';
+      break;
+    }
+  }
+  
+  // Generate topic-based test if we detected a topic
+  if (detectedTopic) {
+    const fallbackTest = generateTopicTest(detectedTopic, detectedDifficulty, 5);
+    if (fallbackTest) {
+      let testContent = `# 📝 **${fallbackTest.title}**
+
+**Time Allowed:** ${fallbackTest.timeAllowed} minutes  
+**Passing Score:** ${fallbackTest.passingScore}%  
+**Questions:** ${fallbackTest.totalQuestions}  
+
+---
+
+`;
+
+      fallbackTest.questions.forEach((q, index) => {
+        testContent += `## Question ${index + 1}
+
+**${q.question}**
+
+`;
+        if (q.options) {
+          q.options.forEach((option, i) => {
+            testContent += `${String.fromCharCode(65 + i)}. ${option}\n`;
+          });
+          testContent += `\n**Correct Answer:** ${String.fromCharCode(65 + (q.correctAnswer as number))}\n\n`;
+        } else {
+          testContent += `**Answer:** ${q.correctAnswer}\n\n`;
+        }
+        testContent += `**Explanation:** ${q.explanation}\n\n**Topic:** ${q.topic}  \n**Learning Objective:** ${q.learningObjective}\n\n---\n\n`;
+      });
+
+      testContent += `*Assessment generated from CHM medical education curriculum. Practice these concepts and review explanations for optimal learning.*`;
+
+      return testContent;
+    }
+  }
+  
   // Extract phase and week information
   const phaseMatch = lowerMessage.match(/\b(m1|mce|lce)\b/);
   const weekMatch = lowerMessage.match(/week\s*(\d+)/);
   
   if (!phaseMatch) {
-    return `I can create practice tests for CHM curriculum! Please specify which phase you're in:
+    return `I can create practice tests for CHM curriculum! Here are your options:
 
-**Available Phases:**
+## 📚 **Curriculum-Based Tests**
 • **M1** - Foundation Phase (Weeks 1-6 available)
 • **MCE** - Medical Clinical Experience (Weeks 1-6 available) 
 • **LCE** - Longitudinal Clinical Experience (Weeks 1-6 available)
 
+## 🧬 **Topic-Based Tests** 
+• **Cardiovascular** - Heart, circulation, ECG interpretation
+• **Respiratory** - Lungs, gas exchange, pulmonary function  
+• **Renal** - Kidneys, fluid balance, acid-base
+• **Endocrine** - Hormones, metabolism, diabetes
+• **Gastrointestinal** - Digestion, liver function, GI disorders
+• **Nervous System** - Brain, spinal cord, neurological conditions
+• **Immunology** - Immune system, hypersensitivity, autoimmunity
+• **Microbiology** - Bacteria, viruses, antibiotics
+• **Biochemistry** - Metabolism, enzymes, molecular processes
+• **Pharmacology** - Drug mechanisms, interactions, dosing
+
 **Example requests:**
 • "Create a test for M1 week 3"
-• "Generate a quiz for MCE week 1"
-• "Make practice questions for LCE week 2"
+• "Give me a biochemistry test"
+• "Make a difficult cardiovascular quiz"
 
-Which phase and week would you like a test for? #testing #curriculum #assessment`;
+Which would you like? #testing #curriculum #assessment`;
   }
   
   const phase = phaseMatch[1].toUpperCase();
