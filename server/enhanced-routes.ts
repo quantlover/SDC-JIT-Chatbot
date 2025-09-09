@@ -113,23 +113,40 @@ What would you like to know about CHM or your medical education?`;
     
     const isBriefFollowUp = briefPatterns.some(pattern => pattern.test(message));
     
+    console.log('Brief question detection:', {
+      message,
+      isBriefQuestion,
+      isBriefFollowUp,
+      lastUserMessage: lastUserMessage?.content,
+      lastAssistantMessage: lastAssistantMessage?.content?.substring(0, 100)
+    });
+    
     if ((isBriefFollowUp || isBriefQuestion) && lastAssistantMessage && lastUserMessage) {
       // Extract key topics from previous conversation
-      const topicMatches = lastUserMessage.content.match(/(M1|M2|M3|MCE|LCE|week \d+|emergency|cardiology|neurology|surgery|pediatrics|psychiatry|medicine|quiz|test|exam)/gi);
+      const topicMatches = lastUserMessage.content.match(/(M1|M2|M3|MCE|LCE|week \d+|emergency|cardiology|neurology|surgery|pediatrics|psychiatry|medicine|quiz|test|exam|anatomy|physiology|pathology)/gi);
       const topics = topicMatches ? topicMatches.join(', ') : 'the previous topic';
       
-      enhancedMessage = `CONTEXT: The user just asked "${lastUserMessage.content}" and I provided information about ${topics}. 
+      // Special handling for test/quiz requests
+      if (message.toLowerCase().includes('harder') && (message.toLowerCase().includes('test') || message.toLowerCase().includes('quiz') || lastUserMessage.content.toLowerCase().includes('test') || lastUserMessage.content.toLowerCase().includes('quiz'))) {
+        enhancedMessage = `The user previously asked: "${lastUserMessage.content}"
+
+Now they want a "harder test" or "harder quiz" about the same topic: ${topics}
+
+Please generate a more challenging test/quiz on ${topics} with harder difficulty level than what was previously provided. Make it more complex and detailed.`;
+      } else {
+        enhancedMessage = `CONTEXT: The user just asked "${lastUserMessage.content}" and I provided information about ${topics}. 
 
 CURRENT REQUEST: "${message}"
 
 This is a brief follow-up request. Based on the context:
-- If they want "harder quiz/questions" → Generate a harder quiz on ${topics}
-- If they want "easier quiz/questions" → Generate an easier quiz on ${topics} 
+- If they want "harder quiz/questions/test" → Generate a harder quiz on ${topics}
+- If they want "easier quiz/questions/test" → Generate an easier quiz on ${topics} 
 - If they want "more questions" → Generate more questions about ${topics}
 - If they want "another quiz" → Generate a different quiz about ${topics}
 - If they want "explain more" → Provide more detailed explanation about ${topics}
 
 Please respond appropriately based on their brief request and the conversation context.`;
+      }
     }
   }
   
@@ -145,6 +162,7 @@ CRITICAL RESPONSE GUIDELINES:
 3. Provide specific, actionable information relevant to their question
 4. Avoid generic overviews unless specifically requested
 5. If you don't have specific information, say so clearly and suggest appropriate resources
+6. IMPORTANT: If the user provides context about previous requests and asks for "harder", "easier", "more" etc., USE THAT CONTEXT to generate appropriate follow-up content
 
 CHM SPECIFIC INFORMATION:
 Learning Societies:
@@ -172,7 +190,9 @@ RESPONSE APPROACH:
 - Suggest follow-up resources only if directly relevant
 - Keep responses concise and targeted
 
-Remember: Match your response directly to what the student is asking about. Don't provide information they didn't request.`;
+Remember: Match your response directly to what the student is asking about. Don't provide information they didn't request.
+
+CONTEXT HANDLING: If the user's message contains context like "The user previously asked..." and mentions wanting a "harder test" or similar follow-up, generate the appropriate content based on that context. Pay special attention to difficulty adjustments and topic continuity.`;
 
   try {
     const response = await openai.chat.completions.create({
