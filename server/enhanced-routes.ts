@@ -213,6 +213,36 @@ CONTEXT HANDLING: If the user's message contains context like "The user previous
     // Enhanced fallback responses based on keywords
     const lowerMessage = message.toLowerCase();
     
+    if (lowerMessage.includes('step 1') || lowerMessage.includes('usmle')) {
+      return `I'd love to help you prepare for **USMLE Step 1**! Here's a comprehensive prep guide:
+
+## 📚 **Core Study Areas**
+• **Basic Sciences**: Anatomy, Physiology, Pathology, Pharmacology, Microbiology
+• **Integrated Systems**: Cardiovascular, Respiratory, Renal, GI, Endocrine, Reproductive
+• **Immunology & Pathology**: Disease mechanisms and immune responses
+
+## 🎯 **Essential Study Resources**
+• **NBME Practice Exams**: Available through MyMSU portal
+• **UWorld Question Bank**: Essential for practice questions and explanations
+• **First Aid for USMLE Step 1**: Comprehensive review book
+• **Pathoma**: Excellent video series for pathology concepts
+• **Sketchy Medical**: Visual mnemonics for microbiology/pharmacology
+
+## 📖 **CHM-Specific Resources**
+• Canvas course materials from M1 foundational sciences
+• Clinical Skills Center for integrated practice
+• Academic Achievement services for personalized study planning
+• NBME practice exam access through student services
+
+## ⏰ **Study Timeline Recommendations**
+• **6+ months before**: Build strong foundation with M1 materials
+• **3-4 months before**: Begin intensive review with First Aid + UWorld
+• **1-2 months before**: Focus on practice exams and weak areas
+• **Final weeks**: Review high-yield facts and maintain confidence
+
+Would you like me to focus on any specific subject area or study strategy?`;
+    }
+    
     if (lowerMessage.includes('learning society') || lowerMessage.includes('societies')) {
       return `CHM has four learning societies, each with a unique educational philosophy:
 
