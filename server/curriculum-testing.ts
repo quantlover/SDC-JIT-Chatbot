@@ -1,9 +1,4 @@
-import OpenAI from 'openai';
-
-// Initialize OpenAI client
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || "demo_key"
-});
+import OpenAI from "openai";
 
 export interface CurriculumWeek {
   week: number;
@@ -22,7 +17,7 @@ export interface TestQuestion {
   correctAnswer: string | number;
   explanation: string;
   optionFeedback?: string[]; // Detailed feedback for each option (why it's correct or incorrect)
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: 'easy' | 'medium' | 'difficult';
   topic: string;
   learningObjective: string;
 }
@@ -40,262 +35,77 @@ export interface GeneratedTest {
 }
 
 // Medical topic test banks organized by system and difficulty
-export const medicalTopicTestBanks = {
+export const medicalTopicTestBanks: Record<string, Record<string, TestQuestion[]>> = {
   cardiovascular: {
     easy: [
       {
         id: 'cv-easy-1',
         question: 'What is the normal resting heart rate range for adults?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['40-60 bpm', '60-100 bpm', '100-120 bpm', '120-150 bpm'],
         correctAnswer: 1,
         explanation: 'The normal resting heart rate for adults is 60-100 beats per minute.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Cardiovascular Physiology',
         learningObjective: 'Identify normal cardiac vital signs'
       },
       {
         id: 'cv-easy-2',
         question: 'Which chamber of the heart pumps blood to the systemic circulation?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Right atrium', 'Right ventricle', 'Left atrium', 'Left ventricle'],
         correctAnswer: 3,
         explanation: 'The left ventricle pumps oxygenated blood to the systemic circulation.',
-        difficulty: 'easy' as const,
-        topic: 'Cardiac Anatomy',
-        learningObjective: 'Identify heart chamber functions'
-      }
-    ],
-    medium: [
-      {
-        id: 'cv-med-1',
-        question: 'A patient presents with chest pain and ST-elevation on ECG leads II, III, and aVF. Which coronary artery is most likely occluded?',
-        type: 'multiple-choice' as const,
-        options: ['Left anterior descending', 'Right coronary artery', 'Left circumflex', 'Left main'],
-        correctAnswer: 1,
-        explanation: 'ST-elevation in leads II, III, and aVF indicates an inferior wall MI, typically caused by RCA occlusion.',
-        difficulty: 'medium' as const,
-        topic: 'Myocardial Infarction',
-        learningObjective: 'Correlate ECG findings with coronary anatomy'
-      }
-    ],
-    difficult: [
-      {
-        id: 'cv-hard-1',
-        question: 'Calculate the cardiac output for a patient with stroke volume of 70mL and heart rate of 80 bpm, then determine the ejection fraction if end-diastolic volume is 140mL.',
-        type: 'short-answer' as const,
-        correctAnswer: 'CO = 5.6 L/min, EF = 50%',
-        explanation: 'CO = SV × HR = 70mL × 80 = 5600mL/min = 5.6L/min. EF = SV/EDV = 70/140 = 0.5 = 50%',
-        difficulty: 'difficult' as const,
-        topic: 'Cardiac Output Calculations',
-        learningObjective: 'Calculate and interpret hemodynamic parameters'
-      }
-    ]
-  },
-  respiratory: {
-    easy: [
-      {
-        id: 'resp-easy-1',
-        question: 'What is the primary muscle of inspiration?',
-        type: 'multiple-choice' as const,
-        options: ['Intercostal muscles', 'Diaphragm', 'Accessory muscles', 'Abdominal muscles'],
-        correctAnswer: 1,
-        explanation: 'The diaphragm is the primary muscle responsible for inspiration.',
-        difficulty: 'easy' as const,
-        topic: 'Respiratory Mechanics',
-        learningObjective: 'Identify muscles of respiration'
-      }
-    ],
-    medium: [
-      {
-        id: 'resp-med-1',
-        question: 'A patient with COPD shows decreased FEV1/FVC ratio. What does this indicate?',
-        type: 'multiple-choice' as const,
-        options: ['Restrictive disease', 'Obstructive disease', 'Normal spirometry', 'Neuromuscular weakness'],
-        correctAnswer: 1,
-        explanation: 'Decreased FEV1/FVC ratio (<0.7) indicates obstructive lung disease like COPD.',
-        difficulty: 'medium' as const,
-        topic: 'Pulmonary Function Tests',
-        learningObjective: 'Interpret spirometry results'
-      }
-    ],
-    difficult: [
-      {
-        id: 'resp-hard-1',
-        question: 'Calculate the A-a gradient for a patient breathing room air with PaO2 = 80 mmHg, given PAO2 = 100 mmHg. What does this suggest?',
-        type: 'short-answer' as const,
-        correctAnswer: 'A-a gradient = 20 mmHg, suggests mild gas exchange impairment',
-        explanation: 'A-a gradient = PAO2 - PaO2 = 100 - 80 = 20 mmHg. Normal is <15 mmHg, so this suggests mild impairment.',
-        difficulty: 'difficult' as const,
-        topic: 'Gas Exchange',
-        learningObjective: 'Calculate and interpret A-a gradient'
-      }
-    ]
-  },
-  renal: {
-    easy: [
-      {
-        id: 'renal-easy-1',
-        question: 'Which part of the nephron is primarily responsible for filtration?',
-        type: 'multiple-choice' as const,
-        options: ['Proximal tubule', 'Loop of Henle', 'Glomerulus', 'Distal tubule'],
-        correctAnswer: 2,
-        explanation: 'The glomerulus is the site of filtration in the nephron.',
-        difficulty: 'easy' as const,
-        topic: 'Renal Anatomy',
-        learningObjective: 'Identify nephron components and functions'
-      }
-    ],
-    medium: [
-      {
-        id: 'renal-med-1',
-        question: 'A patient has proteinuria, hypoalbuminemia, and edema. What syndrome is this?',
-        type: 'multiple-choice' as const,
-        options: ['Nephritic syndrome', 'Nephrotic syndrome', 'Acute tubular necrosis', 'Chronic kidney disease'],
-        correctAnswer: 1,
-        explanation: 'The triad of proteinuria, hypoalbuminemia, and edema defines nephrotic syndrome.',
-        difficulty: 'medium' as const,
-        topic: 'Glomerular Disease',
-        learningObjective: 'Distinguish nephritic vs nephrotic syndromes'
-      }
-    ],
-    difficult: [
-      {
-        id: 'renal-hard-1',
-        question: 'Calculate GFR using creatinine clearance: Urine creatinine = 120 mg/dL, Serum creatinine = 1.2 mg/dL, Urine flow = 1.5 mL/min.',
-        type: 'short-answer' as const,
-        correctAnswer: 'GFR = 150 mL/min',
-        explanation: 'GFR = (Urine creatinine × Urine flow) / Serum creatinine = (120 × 1.5) / 1.2 = 150 mL/min',
-        difficulty: 'difficult' as const,
-        topic: 'Renal Function Assessment',
-        learningObjective: 'Calculate GFR and interpret results'
-      }
-    ]
-  },
-  immunology: {
-    easy: [
-      {
-        id: 'immuno-easy-1',
-        question: 'Which type of immunity provides immediate, non-specific protection?',
-        type: 'multiple-choice' as const,
-        options: ['Adaptive immunity', 'Innate immunity', 'Humoral immunity', 'Cell-mediated immunity'],
-        correctAnswer: 1,
-        explanation: 'Innate immunity provides immediate, non-specific protection against pathogens.',
-        difficulty: 'easy' as const,
-        topic: 'Immune System Overview',
-        learningObjective: 'Distinguish innate vs adaptive immunity'
-      }
-    ],
-    medium: [
-      {
-        id: 'immuno-med-1',
-        question: 'A patient with peanut allergy experiences anaphylaxis. What type of hypersensitivity is this?',
-        type: 'multiple-choice' as const,
-        options: ['Type I', 'Type II', 'Type III', 'Type IV'],
-        correctAnswer: 0,
-        explanation: 'Anaphylaxis is a Type I (immediate) hypersensitivity reaction mediated by IgE.',
-        difficulty: 'medium' as const,
-        topic: 'Hypersensitivity Reactions',
-        learningObjective: 'Classify hypersensitivity reactions'
-      }
-    ],
-    difficult: [
-      {
-        id: 'immuno-hard-1',
-        question: 'Explain the molecular mechanism of MHC Class I antigen presentation and its clinical significance in transplant rejection.',
-        type: 'short-answer' as const,
-        correctAnswer: 'MHC I presents intracellular peptides to CD8+ T cells, critical for transplant compatibility',
-        explanation: 'MHC Class I molecules present intracellular peptides on all nucleated cells to CD8+ T cells. Mismatch leads to transplant rejection.',
-        difficulty: 'difficult' as const,
-        topic: 'Antigen Presentation',
-        learningObjective: 'Explain MHC function and transplant immunology'
-      }
-    ]
-  }
-};
-
-// Medical topic test banks organized by system and difficulty
-export const medicalTopicTestBanks = {
-  cardiovascular: {
-    easy: [
-      {
-        id: 'cv-easy-1',
-        question: 'What is the normal resting heart rate range for adults?',
-        type: 'multiple-choice' as const,
-        options: ['40-60 bpm', '60-100 bpm', '100-120 bpm', '120-150 bpm'],
-        correctAnswer: 1,
-        explanation: 'The normal resting heart rate for adults is 60-100 beats per minute.',
-        difficulty: 'easy' as const,
-        topic: 'Cardiovascular Physiology',
-        learningObjective: 'Identify normal cardiac vital signs'
-      },
-      {
-        id: 'cv-easy-2',
-        question: 'Which chamber of the heart pumps blood to the systemic circulation?',
-        type: 'multiple-choice' as const,
-        options: ['Right atrium', 'Right ventricle', 'Left atrium', 'Left ventricle'],
-        correctAnswer: 3,
-        explanation: 'The left ventricle pumps oxygenated blood to the systemic circulation.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Cardiac Anatomy',
         learningObjective: 'Identify heart chamber functions'
       },
       {
         id: 'cv-easy-3',
         question: 'What does systolic blood pressure represent?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Pressure during ventricular filling', 'Pressure during ventricular contraction', 'Pressure in the atria', 'Pressure in the veins'],
         correctAnswer: 1,
         explanation: 'Systolic blood pressure represents the pressure in arteries during ventricular contraction.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Blood Pressure',
-        learningObjective: 'Define systolic and diastolic pressure'
+        learningObjective: 'Understand blood pressure components'
       }
     ],
     medium: [
       {
         id: 'cv-med-1',
         question: 'A patient presents with chest pain and ST-elevation on ECG leads II, III, and aVF. Which coronary artery is most likely occluded?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Left anterior descending', 'Right coronary artery', 'Left circumflex', 'Left main'],
         correctAnswer: 1,
         explanation: 'ST-elevation in leads II, III, and aVF indicates an inferior wall MI, typically caused by RCA occlusion.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Myocardial Infarction',
         learningObjective: 'Correlate ECG findings with coronary anatomy'
       },
       {
         id: 'cv-med-2',
-        question: 'A patient with heart failure shows increased JVD and peripheral edema but clear lungs. What type of heart failure is this?',
-        type: 'multiple-choice' as const,
-        options: ['Left-sided systolic', 'Left-sided diastolic', 'Right-sided', 'Biventricular'],
-        correctAnswer: 2,
-        explanation: 'Right-sided heart failure presents with systemic congestion (JVD, edema) but spares the lungs.',
-        difficulty: 'medium' as const,
-        topic: 'Heart Failure',
-        learningObjective: 'Differentiate types of heart failure'
+        question: 'A patient has heart failure with reduced ejection fraction. Which medication class is first-line therapy?',
+        type: 'multiple-choice',
+        options: ['ACE inhibitors', 'Calcium channel blockers', 'Beta-blockers', 'Diuretics'],
+        correctAnswer: 0,
+        explanation: 'ACE inhibitors are first-line therapy for HFrEF, providing mortality benefit.',
+        difficulty: 'medium',
+        topic: 'Heart Failure Management',
+        learningObjective: 'Select appropriate heart failure therapies'
       }
     ],
     difficult: [
       {
         id: 'cv-hard-1',
         question: 'Calculate the cardiac output for a patient with stroke volume of 70mL and heart rate of 80 bpm, then determine the ejection fraction if end-diastolic volume is 140mL.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'CO = 5.6 L/min, EF = 50%',
         explanation: 'CO = SV × HR = 70mL × 80 = 5600mL/min = 5.6L/min. EF = SV/EDV = 70/140 = 0.5 = 50%',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'Cardiac Output Calculations',
         learningObjective: 'Calculate and interpret hemodynamic parameters'
-      },
-      {
-        id: 'cv-hard-2',
-        question: 'A patient has aortic stenosis with valve area of 0.8 cm². Calculate the pressure gradient if cardiac output is 5 L/min. What is the clinical significance?',
-        type: 'short-answer' as const,
-        correctAnswer: 'Severe aortic stenosis with significant pressure gradient',
-        explanation: 'Valve area <1.0 cm² indicates severe aortic stenosis. High gradient suggests significant obstruction requiring intervention.',
-        difficulty: 'difficult' as const,
-        topic: 'Valvular Disease',
-        learningObjective: 'Calculate valve parameters and assess severity'
       }
     ]
   },
@@ -304,58 +114,47 @@ export const medicalTopicTestBanks = {
       {
         id: 'resp-easy-1',
         question: 'What is the primary muscle of inspiration?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Intercostal muscles', 'Diaphragm', 'Accessory muscles', 'Abdominal muscles'],
         correctAnswer: 1,
         explanation: 'The diaphragm is the primary muscle responsible for inspiration.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Respiratory Mechanics',
         learningObjective: 'Identify muscles of respiration'
       },
       {
         id: 'resp-easy-2',
-        question: 'Where does gas exchange occur in the lungs?',
-        type: 'multiple-choice' as const,
-        options: ['Bronchi', 'Bronchioles', 'Alveoli', 'Trachea'],
-        correctAnswer: 2,
-        explanation: 'Gas exchange occurs in the alveoli, where oxygen and carbon dioxide cross the respiratory membrane.',
-        difficulty: 'easy' as const,
-        topic: 'Lung Anatomy',
-        learningObjective: 'Identify sites of gas exchange'
+        question: 'What is the normal tidal volume for an average adult?',
+        type: 'multiple-choice',
+        options: ['250 mL', '500 mL', '750 mL', '1000 mL'],
+        correctAnswer: 1,
+        explanation: 'Normal tidal volume is approximately 500 mL (about 7 mL/kg).',
+        difficulty: 'easy',
+        topic: 'Lung Volumes',
+        learningObjective: 'Know normal respiratory volumes'
       }
     ],
     medium: [
       {
         id: 'resp-med-1',
         question: 'A patient with COPD shows decreased FEV1/FVC ratio. What does this indicate?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Restrictive disease', 'Obstructive disease', 'Normal spirometry', 'Neuromuscular weakness'],
         correctAnswer: 1,
         explanation: 'Decreased FEV1/FVC ratio (<0.7) indicates obstructive lung disease like COPD.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Pulmonary Function Tests',
         learningObjective: 'Interpret spirometry results'
-      },
-      {
-        id: 'resp-med-2',
-        question: 'A patient presents with sudden onset dyspnea and pleuritic chest pain. CXR shows absence of lung markings in the right upper lobe. What is the most likely diagnosis?',
-        type: 'multiple-choice' as const,
-        options: ['Pneumonia', 'Pneumothorax', 'Pulmonary embolism', 'Pleural effusion'],
-        correctAnswer: 1,
-        explanation: 'Sudden dyspnea with absence of lung markings on CXR indicates pneumothorax.',
-        difficulty: 'medium' as const,
-        topic: 'Pneumothorax',
-        learningObjective: 'Recognize pneumothorax presentation and imaging'
       }
     ],
     difficult: [
       {
         id: 'resp-hard-1',
         question: 'Calculate the A-a gradient for a patient breathing room air with PaO2 = 80 mmHg, given PAO2 = 100 mmHg. What does this suggest?',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'A-a gradient = 20 mmHg, suggests mild gas exchange impairment',
         explanation: 'A-a gradient = PAO2 - PaO2 = 100 - 80 = 20 mmHg. Normal is <15 mmHg, so this suggests mild impairment.',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'Gas Exchange',
         learningObjective: 'Calculate and interpret A-a gradient'
       }
@@ -366,11 +165,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'renal-easy-1',
         question: 'Which part of the nephron is primarily responsible for filtration?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Proximal tubule', 'Loop of Henle', 'Glomerulus', 'Distal tubule'],
         correctAnswer: 2,
         explanation: 'The glomerulus is the site of filtration in the nephron.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Renal Anatomy',
         learningObjective: 'Identify nephron components and functions'
       }
@@ -379,11 +178,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'renal-med-1',
         question: 'A patient has proteinuria, hypoalbuminemia, and edema. What syndrome is this?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Nephritic syndrome', 'Nephrotic syndrome', 'Acute tubular necrosis', 'Chronic kidney disease'],
         correctAnswer: 1,
         explanation: 'The triad of proteinuria, hypoalbuminemia, and edema defines nephrotic syndrome.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Glomerular Disease',
         learningObjective: 'Distinguish nephritic vs nephrotic syndromes'
       }
@@ -392,10 +191,10 @@ export const medicalTopicTestBanks = {
       {
         id: 'renal-hard-1',
         question: 'Calculate GFR using creatinine clearance: Urine creatinine = 120 mg/dL, Serum creatinine = 1.2 mg/dL, Urine flow = 1.5 mL/min.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'GFR = 150 mL/min',
         explanation: 'GFR = (Urine creatinine × Urine flow) / Serum creatinine = (120 × 1.5) / 1.2 = 150 mL/min',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'Renal Function Assessment',
         learningObjective: 'Calculate GFR and interpret results'
       }
@@ -406,11 +205,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'endo-easy-1',
         question: 'Which gland is known as the "master gland"?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Thyroid', 'Pituitary', 'Adrenal', 'Pancreas'],
         correctAnswer: 1,
         explanation: 'The pituitary gland is called the master gland because it controls other endocrine glands.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Endocrine Overview',
         learningObjective: 'Identify major endocrine glands and functions'
       }
@@ -419,11 +218,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'endo-med-1',
         question: 'A patient presents with polyuria, polydipsia, and blood glucose of 300 mg/dL. What is the most likely diagnosis?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Type 1 diabetes', 'Type 2 diabetes', 'Diabetes insipidus', 'Hyperthyroidism'],
         correctAnswer: 0,
         explanation: 'Classic triad of polyuria, polydipsia, and hyperglycemia suggests diabetes mellitus, likely Type 1 with acute presentation.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Diabetes',
         learningObjective: 'Recognize diabetes mellitus presentation'
       }
@@ -432,12 +231,92 @@ export const medicalTopicTestBanks = {
       {
         id: 'endo-hard-1',
         question: 'Calculate insulin requirements for DKA treatment: Patient weighs 70kg with glucose 400mg/dL and ketones present.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'Initial: 0.1 units/kg/hr = 7 units/hr insulin infusion',
         explanation: 'DKA treatment requires 0.1 units/kg/hr insulin infusion initially, with glucose and electrolyte monitoring.',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'DKA Management',
         learningObjective: 'Calculate insulin dosing for DKA'
+      }
+    ]
+  },
+  gastrointestinal: {
+    easy: [
+      {
+        id: 'gi-easy-1',
+        question: 'Which organ produces bile?',
+        type: 'multiple-choice',
+        options: ['Pancreas', 'Gallbladder', 'Liver', 'Small intestine'],
+        correctAnswer: 2,
+        explanation: 'The liver produces bile, which is stored in the gallbladder.',
+        difficulty: 'easy',
+        topic: 'GI Anatomy',
+        learningObjective: 'Identify GI organ functions'
+      }
+    ],
+    medium: [
+      {
+        id: 'gi-med-1',
+        question: 'A patient has epigastric pain that improves with eating. What is the most likely diagnosis?',
+        type: 'multiple-choice',
+        options: ['Gastric ulcer', 'Duodenal ulcer', 'GERD', 'Pancreatitis'],
+        correctAnswer: 1,
+        explanation: 'Duodenal ulcer pain typically improves with eating, unlike gastric ulcer pain which worsens.',
+        difficulty: 'medium',
+        topic: 'Peptic Ulcer Disease',
+        learningObjective: 'Differentiate ulcer types by presentation'
+      }
+    ],
+    difficult: [
+      {
+        id: 'gi-hard-1',
+        question: 'Calculate the Child-Pugh score for a patient with bilirubin 3.0 mg/dL, albumin 2.8 g/dL, PT prolonged by 6 seconds, ascites present, and hepatic encephalopathy grade 2.',
+        type: 'short-answer',
+        correctAnswer: 'Child-Pugh Class B (7-9 points)',
+        explanation: 'Bilirubin 3.0 (2 pts) + albumin 2.8 (2 pts) + PT +6s (2 pts) + ascites (2 pts) + encephalopathy grade 2 (2 pts) = 10 points = Class C',
+        difficulty: 'difficult',
+        topic: 'Liver Function Assessment',
+        learningObjective: 'Calculate Child-Pugh score'
+      }
+    ]
+  },
+  nervous: {
+    easy: [
+      {
+        id: 'neuro-easy-1',
+        question: 'Which lobe of the brain is primarily responsible for motor function?',
+        type: 'multiple-choice',
+        options: ['Frontal', 'Parietal', 'Temporal', 'Occipital'],
+        correctAnswer: 0,
+        explanation: 'The frontal lobe contains the primary motor cortex responsible for voluntary movement.',
+        difficulty: 'easy',
+        topic: 'Brain Anatomy',
+        learningObjective: 'Identify brain lobe functions'
+      }
+    ],
+    medium: [
+      {
+        id: 'neuro-med-1',
+        question: 'A patient has sudden onset right-sided weakness and aphasia. Which artery is most likely affected?',
+        type: 'multiple-choice',
+        options: ['Left MCA', 'Right MCA', 'Left PCA', 'Right PCA'],
+        correctAnswer: 0,
+        explanation: 'Left MCA stroke causes right-sided weakness and aphasia (language centers in left hemisphere).',
+        difficulty: 'medium',
+        topic: 'Stroke Syndromes',
+        learningObjective: 'Correlate stroke symptoms with vascular territories'
+      }
+    ],
+    difficult: [
+      {
+        id: 'neuro-hard-1',
+        question: 'Calculate cerebral perfusion pressure (CPP) for a patient with mean arterial pressure of 90 mmHg and intracranial pressure of 25 mmHg. Is this adequate?',
+        type: 'short-answer',
+        correctAnswer: 'CPP = 65 mmHg, adequate (>60 mmHg)',
+        explanation: 'CPP = MAP - ICP = 90 - 25 = 65 mmHg. Normal CPP is >60 mmHg, so this is adequate.',
+        difficulty: 'difficult',
+        topic: 'Intracranial Pressure',
+        learningObjective: 'Calculate and interpret CPP'
       }
     ]
   },
@@ -446,11 +325,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'immuno-easy-1',
         question: 'Which cells are responsible for antibody production?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['T cells', 'B cells', 'NK cells', 'Macrophages'],
         correctAnswer: 1,
         explanation: 'B cells differentiate into plasma cells that produce antibodies.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Adaptive Immunity',
         learningObjective: 'Identify functions of immune cells'
       }
@@ -459,11 +338,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'immuno-med-1',
         question: 'A patient develops hives and swelling after eating peanuts. What type of hypersensitivity is this?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Type I', 'Type II', 'Type III', 'Type IV'],
         correctAnswer: 0,
         explanation: 'Immediate allergic reactions with hives are Type I (IgE-mediated) hypersensitivity.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Hypersensitivity',
         learningObjective: 'Classify hypersensitivity reactions'
       }
@@ -472,10 +351,10 @@ export const medicalTopicTestBanks = {
       {
         id: 'immuno-hard-1',
         question: 'Explain the mechanism of molecular mimicry in autoimmune diseases with specific example.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'Cross-reactivity between pathogen and self-antigens, e.g., rheumatic fever after strep infection',
         explanation: 'Molecular mimicry occurs when pathogen antigens resemble self-antigens, leading to autoimmune responses.',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'Autoimmunity',
         learningObjective: 'Explain mechanisms of autoimmune disease development'
       }
@@ -486,11 +365,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'micro-easy-1',
         question: 'What color do Gram-positive bacteria appear after Gram staining?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Pink/Red', 'Purple/Blue', 'Green', 'Yellow'],
         correctAnswer: 1,
         explanation: 'Gram-positive bacteria retain the crystal violet stain and appear purple/blue.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Bacterial Classification',
         learningObjective: 'Understand Gram staining principles'
       }
@@ -499,11 +378,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'micro-med-1',
         question: 'A patient has pneumonia with rusty-colored sputum. Gram stain shows Gram-positive diplococci. What is the most likely organism?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Streptococcus pneumoniae', 'Staphylococcus aureus', 'Haemophilus influenzae', 'Klebsiella pneumoniae'],
         correctAnswer: 0,
         explanation: 'S. pneumoniae classically presents with rusty sputum and appears as Gram-positive diplococci.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Respiratory Infections',
         learningObjective: 'Correlate clinical and lab findings with pathogens'
       }
@@ -512,10 +391,10 @@ export const medicalTopicTestBanks = {
       {
         id: 'micro-hard-1',
         question: 'Design an antibiotic regimen for MRSA pneumonia in a patient with penicillin allergy.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'Vancomycin or linezolid, avoid beta-lactams',
         explanation: 'MRSA requires vancomycin or linezolid. Avoid all beta-lactams in penicillin-allergic patients.',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'Antibiotic Therapy',
         learningObjective: 'Design appropriate antibiotic regimens'
       }
@@ -526,11 +405,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'biochem-easy-1',
         question: 'Which molecule stores energy in cells?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['ADP', 'ATP', 'AMP', 'NAD+'],
         correctAnswer: 1,
         explanation: 'ATP (adenosine triphosphate) is the primary energy storage molecule in cells.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Energy Metabolism',
         learningObjective: 'Identify energy-storing molecules'
       }
@@ -539,11 +418,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'biochem-med-1',
         question: 'A patient has elevated lactate levels after exercise. What metabolic pathway is being used?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Aerobic respiration', 'Anaerobic glycolysis', 'Gluconeogenesis', 'Fatty acid oxidation'],
         correctAnswer: 1,
         explanation: 'Elevated lactate indicates anaerobic glycolysis is occurring due to insufficient oxygen.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Glycolysis',
         learningObjective: 'Understand metabolic pathway regulation'
       }
@@ -552,10 +431,10 @@ export const medicalTopicTestBanks = {
       {
         id: 'biochem-hard-1',
         question: 'Calculate net ATP yield from complete oxidation of one glucose molecule through glycolysis and TCA cycle.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: '30-32 ATP molecules',
         explanation: 'Glycolysis yields 2 ATP, TCA cycle yields 2 ATP, electron transport yields ~26-28 ATP, total ~30-32 ATP.',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'ATP Calculation',
         learningObjective: 'Calculate energy yields from metabolic pathways'
       }
@@ -566,11 +445,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'pharm-easy-1',
         question: 'What does ADME stand for in pharmacology?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Absorption, Distribution, Metabolism, Excretion', 'Action, Dose, Mechanism, Effect', 'Administration, Delivery, Modification, Elimination', 'Affinity, Duration, Magnitude, Efficacy'],
         correctAnswer: 0,
         explanation: 'ADME represents the four main pharmacokinetic processes: Absorption, Distribution, Metabolism, Excretion.',
-        difficulty: 'easy' as const,
+        difficulty: 'easy',
         topic: 'Pharmacokinetics',
         learningObjective: 'Define basic pharmacokinetic principles'
       }
@@ -579,11 +458,11 @@ export const medicalTopicTestBanks = {
       {
         id: 'pharm-med-1',
         question: 'A patient on warfarin starts taking a CYP450 inducer. What happens to warfarin levels?',
-        type: 'multiple-choice' as const,
+        type: 'multiple-choice',
         options: ['Increase', 'Decrease', 'No change', 'Unpredictable'],
         correctAnswer: 1,
         explanation: 'CYP450 inducers increase warfarin metabolism, decreasing warfarin levels and anticoagulation effect.',
-        difficulty: 'medium' as const,
+        difficulty: 'medium',
         topic: 'Drug Interactions',
         learningObjective: 'Predict drug interaction effects'
       }
@@ -592,241 +471,15 @@ export const medicalTopicTestBanks = {
       {
         id: 'pharm-hard-1',
         question: 'Calculate loading dose for digoxin: Target level 2 ng/mL, Vd = 7 L/kg, patient weighs 70 kg, bioavailability = 0.7.',
-        type: 'short-answer' as const,
+        type: 'short-answer',
         correctAnswer: 'Loading dose = 1400 mcg',
         explanation: 'Loading dose = (Target × Vd × Weight) / Bioavailability = (2 × 7 × 70) / 0.7 = 1400 mcg',
-        difficulty: 'difficult' as const,
+        difficulty: 'difficult',
         topic: 'Dosing Calculations',
         learningObjective: 'Calculate appropriate drug dosing'
       }
     ]
   }
-};
-
-// Comprehensive curriculum data by phase and week
-export const curriculumData: Record<string, CurriculumWeek[]> = {
-  M1: [
-    {
-      week: 1,
-      title: "Introduction to Medical School and Learning Societies",
-      topics: ["Medical professionalism", "Learning society orientation", "Study strategies", "CHM mission and values"],
-      learningObjectives: [
-        "Understand the CHM Shared Discovery Curriculum structure",
-        "Identify your learning society and its values",
-        "Develop effective study habits for medical school"
-      ],
-      keyTerms: ["Learning societies", "Shared Discovery Curriculum", "Professional identity"],
-      assessmentFocus: ["Curriculum overview", "Learning society characteristics", "Professional behavior"]
-    },
-    {
-      week: 2,
-      title: "Cell Biology and Biochemistry Foundations",
-      topics: ["Cell structure", "Membrane dynamics", "Protein structure", "Enzyme kinetics"],
-      learningObjectives: [
-        "Describe cellular organelles and their functions",
-        "Explain membrane transport mechanisms",
-        "Analyze enzyme kinetics and regulation"
-      ],
-      keyTerms: ["Organelles", "Transport proteins", "Enzyme kinetics", "Protein folding"],
-      assessmentFocus: ["Cell membrane function", "Enzyme mechanisms", "Protein structure-function"]
-    },
-    {
-      week: 3,
-      title: "Human Anatomy: Musculoskeletal System",
-      topics: ["Bone structure", "Joint classifications", "Muscle physiology", "Movement mechanics"],
-      learningObjectives: [
-        "Identify major bones and their anatomical features",
-        "Classify joint types and movements",
-        "Describe muscle contraction mechanisms"
-      ],
-      keyTerms: ["Osteology", "Arthrology", "Myology", "Biomechanics"],
-      assessmentFocus: ["Bone identification", "Joint movements", "Muscle actions"]
-    },
-    {
-      week: 4,
-      title: "Cardiovascular System Basics",
-      topics: ["Heart anatomy", "Cardiac cycle", "Blood vessels", "Circulation pathways"],
-      learningObjectives: [
-        "Describe heart chambers and valves",
-        "Explain the cardiac cycle phases",
-        "Trace blood flow through systemic and pulmonary circuits"
-      ],
-      keyTerms: ["Cardiac cycle", "Systole", "Diastole", "Circulation"],
-      assessmentFocus: ["Heart anatomy", "Cardiac cycle timing", "Blood flow pathways"]
-    },
-    {
-      week: 5,
-      title: "Respiratory System and Gas Exchange",
-      topics: ["Lung anatomy", "Ventilation mechanics", "Gas exchange", "Oxygen transport"],
-      learningObjectives: [
-        "Describe respiratory tract anatomy",
-        "Explain ventilation and perfusion matching",
-        "Analyze oxygen and carbon dioxide transport"
-      ],
-      keyTerms: ["Alveoli", "Ventilation", "Perfusion", "Gas exchange"],
-      assessmentFocus: ["Lung structure", "Breathing mechanics", "Gas transport"]
-    },
-    {
-      week: 6,
-      title: "Nervous System Introduction",
-      topics: ["Neuron structure", "Action potentials", "Synaptic transmission", "CNS organization"],
-      learningObjectives: [
-        "Describe neuron anatomy and types",
-        "Explain action potential generation and propagation",
-        "Analyze synaptic transmission mechanisms"
-      ],
-      keyTerms: ["Neurons", "Action potential", "Synapses", "Neurotransmitters"],
-      assessmentFocus: ["Neuron function", "Electrical conduction", "Synaptic mechanisms"]
-    }
-  ],
-  MCE: [
-    {
-      week: 1,
-      title: "Internal Medicine Rotation - Week 1",
-      topics: ["History taking", "Physical examination", "Differential diagnosis", "Common conditions"],
-      learningObjectives: [
-        "Perform comprehensive history and physical exam",
-        "Develop differential diagnoses for common presentations",
-        "Present patients effectively to attending physicians"
-      ],
-      keyTerms: ["H&P", "Differential diagnosis", "Clinical reasoning", "Patient presentation"],
-      assessmentFocus: ["History taking skills", "Physical exam techniques", "Clinical reasoning"]
-    },
-    {
-      week: 2,
-      title: "Internal Medicine Rotation - Week 2",
-      topics: ["Laboratory interpretation", "Imaging studies", "Treatment planning", "Patient management"],
-      learningObjectives: [
-        "Interpret common laboratory values",
-        "Order appropriate diagnostic tests",
-        "Develop evidence-based treatment plans"
-      ],
-      keyTerms: ["Lab values", "Diagnostic imaging", "Evidence-based medicine", "Treatment protocols"],
-      assessmentFocus: ["Lab interpretation", "Diagnostic reasoning", "Treatment planning"]
-    },
-    {
-      week: 3,
-      title: "Surgery Rotation - Week 1",
-      topics: ["Surgical anatomy", "Preoperative care", "Sterile technique", "Basic procedures"],
-      learningObjectives: [
-        "Understand surgical anatomy for common procedures",
-        "Perform preoperative patient assessment",
-        "Demonstrate proper sterile technique"
-      ],
-      keyTerms: ["Surgical anatomy", "Preoperative assessment", "Sterile technique", "Surgical procedures"],
-      assessmentFocus: ["Anatomy knowledge", "Sterile technique", "Preoperative care"]
-    },
-    {
-      week: 4,
-      title: "Pediatrics Rotation - Week 1",
-      topics: ["Pediatric development", "Growth charts", "Common pediatric conditions", "Parent communication"],
-      learningObjectives: [
-        "Assess normal pediatric development",
-        "Interpret growth charts and milestones",
-        "Communicate effectively with children and parents"
-      ],
-      keyTerms: ["Development milestones", "Growth charts", "Pediatric communication", "Family-centered care"],
-      assessmentFocus: ["Development assessment", "Growth evaluation", "Communication skills"]
-    },
-    {
-      week: 5,
-      title: "Psychiatry Rotation - Week 1",
-      topics: ["Mental status exam", "Psychiatric interview", "Common disorders", "Treatment approaches"],
-      learningObjectives: [
-        "Perform mental status examination",
-        "Conduct psychiatric interviews",
-        "Recognize common psychiatric disorders"
-      ],
-      keyTerms: ["Mental status exam", "Psychiatric interview", "DSM-5", "Therapeutic alliance"],
-      assessmentFocus: ["Mental status exam", "Interview techniques", "Diagnostic criteria"]
-    },
-    {
-      week: 6,
-      title: "Emergency Medicine Rotation - Week 1",
-      topics: ["Triage principles", "Emergency procedures", "Critical care", "Trauma management"],
-      learningObjectives: [
-        "Apply triage principles in emergency settings",
-        "Perform emergency procedures",
-        "Manage critically ill patients"
-      ],
-      keyTerms: ["Triage", "Emergency procedures", "Critical care", "Trauma protocols"],
-      assessmentFocus: ["Triage decisions", "Emergency skills", "Critical thinking"]
-    }
-  ],
-  LCE: [
-    {
-      week: 1,
-      title: "Acting Internship - Internal Medicine Week 1",
-      topics: ["Independent patient management", "Teaching responsibilities", "Quality improvement", "Leadership skills"],
-      learningObjectives: [
-        "Manage patients independently with supervision",
-        "Teach medical students and residents",
-        "Participate in quality improvement initiatives"
-      ],
-      keyTerms: ["Acting intern", "Patient management", "Medical education", "Quality improvement"],
-      assessmentFocus: ["Independent decision making", "Teaching skills", "Leadership abilities"]
-    },
-    {
-      week: 2,
-      title: "Subspecialty Elective - Cardiology",
-      topics: ["Advanced cardiac diagnostics", "Interventional procedures", "Complex cases", "Research applications"],
-      learningObjectives: [
-        "Interpret advanced cardiac diagnostics",
-        "Understand interventional cardiology procedures",
-        "Analyze complex cardiovascular cases"
-      ],
-      keyTerms: ["Cardiac catheterization", "Echocardiography", "Interventional cardiology", "Cardiac research"],
-      assessmentFocus: ["Advanced diagnostics", "Procedure knowledge", "Case analysis"]
-    },
-    {
-      week: 3,
-      title: "USMLE Step 2 Preparation",
-      topics: ["Clinical knowledge review", "Test-taking strategies", "Practice examinations", "Knowledge gaps"],
-      learningObjectives: [
-        "Review high-yield clinical concepts",
-        "Apply effective test-taking strategies",
-        "Identify and address knowledge gaps"
-      ],
-      keyTerms: ["USMLE Step 2", "Clinical knowledge", "Test strategies", "Knowledge assessment"],
-      assessmentFocus: ["Clinical reasoning", "Test performance", "Knowledge application"]
-    },
-    {
-      week: 4,
-      title: "Research Rotation",
-      topics: ["Research methodology", "Data analysis", "Literature review", "Presentation skills"],
-      learningObjectives: [
-        "Design research studies",
-        "Analyze research data",
-        "Present research findings effectively"
-      ],
-      keyTerms: ["Research design", "Statistical analysis", "Literature review", "Research presentation"],
-      assessmentFocus: ["Research methods", "Data interpretation", "Communication skills"]
-    },
-    {
-      week: 5,
-      title: "International/Away Rotation",
-      topics: ["Global health", "Cultural competency", "Healthcare systems", "International medicine"],
-      learningObjectives: [
-        "Understand global health challenges",
-        "Develop cultural competency skills",
-        "Compare healthcare systems internationally"
-      ],
-      keyTerms: ["Global health", "Cultural competency", "Healthcare systems", "International medicine"],
-      assessmentFocus: ["Cultural awareness", "Global health knowledge", "Adaptability"]
-    },
-    {
-      week: 6,
-      title: "Residency Interview Preparation",
-      topics: ["Interview skills", "Program evaluation", "Rank list strategy", "Match preparation"],
-      learningObjectives: [
-        "Develop effective interview skills",
-        "Evaluate residency programs objectively",
-        "Create strategic rank lists"
-      ],
-      keyTerms: ["Residency interviews", "Program evaluation", "Match process", "Rank lists"],
-      assessmentFocus: ["Interview performance", "Decision making", "Professional presentation"]
-    }
-  ]
 };
 
 // Function to generate tests from medical topic test banks
@@ -911,281 +564,205 @@ export function generateTopicTest(topic: string, difficulty: 'easy' | 'medium' |
   };
 }
 
+// Curriculum content for each phase
+export const curriculumContent = {
+  "Foundations": [
+    {
+      week: 1,
+      title: "Introduction to Medicine and Professional Identity Formation",
+      topics: ["Medical professionalism", "Ethics", "Communication skills", "Healthcare systems"],
+      learningObjectives: [
+        "Develop understanding of medical professionalism",
+        "Apply basic ethical principles to healthcare scenarios",
+        "Demonstrate effective communication with patients and colleagues"
+      ],
+      keyTerms: ["Professionalism", "Bioethics", "Patient-centered care", "Healthcare delivery"],
+      assessmentFocus: ["Professional behavior", "Ethical reasoning", "Communication skills"]
+    }
+  ],
+  "Pre-clerkship": [
+    {
+      week: 1,
+      title: "Cardiovascular System - Week 1",
+      topics: ["Cardiac anatomy", "Cardiac physiology", "ECG basics", "Blood pressure regulation"],
+      learningObjectives: [
+        "Describe cardiac anatomy and physiology",
+        "Interpret basic ECG rhythms", 
+        "Explain blood pressure regulation mechanisms"
+      ],
+      keyTerms: ["Cardiac cycle", "Conduction system", "Preload", "Afterload"],
+      assessmentFocus: ["Cardiac anatomy", "Physiological mechanisms", "ECG interpretation"]
+    }
+  ],
+  "MCE": [
+    {
+      week: 1,
+      title: "Internal Medicine Rotation - Week 1",
+      topics: ["History taking", "Physical examination", "Differential diagnosis", "Common conditions"],
+      learningObjectives: [
+        "Perform comprehensive history and physical exam",
+        "Develop differential diagnoses for common presentations",
+        "Present patients effectively to attending physicians"
+      ],
+      keyTerms: ["H&P", "Differential diagnosis", "Clinical reasoning", "Patient presentation"],
+      assessmentFocus: ["History taking skills", "Physical exam techniques", "Clinical reasoning"]
+    }
+  ]
+};
+
 export class CurriculumTestGenerator {
-  constructor() {}
+  private openai: OpenAI;
+
+  constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || "demo_key"
+    });
+  }
 
   async generateTest(phase: string, week: number, options: {
     numQuestions?: number;
     difficulty?: 'easy' | 'medium' | 'hard' | 'mixed';
-    questionTypes?: ('multiple-choice' | 'true-false' | 'short-answer' | 'clinical-case')[];
-    timeAllowed?: number;
-  } = {}): Promise<GeneratedTest | null> {
-    const {
-      numQuestions = 10,
-      difficulty = 'mixed',
-      questionTypes = ['multiple-choice', 'true-false', 'short-answer'],
-      timeAllowed = 30
-    } = options;
-
-    // Get curriculum data for the specified phase and week
-    const phaseData = curriculumData[phase.toUpperCase()];
-    if (!phaseData) {
-      return null;
-    }
-
-    const weekData = phaseData.find(w => w.week === week);
-    if (!weekData) {
-      return null;
+    focus?: string[];
+  } = {}): Promise<GeneratedTest> {
+    const { numQuestions = 10, difficulty = 'mixed', focus = [] } = options;
+    
+    // Get curriculum content for the phase and week
+    const phaseContent = curriculumContent[phase as keyof typeof curriculumContent] || [];
+    const weekContent = phaseContent.find(w => w.week === week);
+    
+    if (!weekContent) {
+      throw new Error(`No curriculum content found for ${phase} week ${week}`);
     }
 
     try {
-      // Generate questions using AI
-      const questions = await this.generateQuestionsWithAI(weekData, numQuestions, difficulty, questionTypes);
+      const prompt = this.buildTestPrompt(weekContent, numQuestions, difficulty, focus);
+      
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert medical educator creating high-quality assessment questions for medical students. Create questions that test both knowledge and clinical application."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from OpenAI');
+      }
+
+      return this.parseTestResponse(content, weekContent, numQuestions);
+      
+    } catch (error) {
+      console.error('Error generating test with OpenAI:', error);
+      
+      // Fallback to basic test generation
+      return this.generateFallbackTest(weekContent, numQuestions, difficulty);
+    }
+  }
+
+  private buildTestPrompt(weekContent: CurriculumWeek, numQuestions: number, difficulty: string, focus: string[]): string {
+    return `Create a medical education assessment with ${numQuestions} questions for:
+
+**Course**: ${weekContent.title}
+**Topics**: ${weekContent.topics.join(', ')}
+**Learning Objectives**: ${weekContent.learningObjectives.join('; ')}
+**Key Terms**: ${weekContent.keyTerms.join(', ')}
+**Assessment Focus**: ${weekContent.assessmentFocus.join(', ')}
+**Difficulty**: ${difficulty}
+${focus.length > 0 ? `**Special Focus**: ${focus.join(', ')}` : ''}
+
+Requirements:
+1. Create exactly ${numQuestions} questions
+2. Mix question types: multiple choice, true/false, and short answer
+3. Each question should include:
+   - Clear, clinically relevant question
+   - For multiple choice: 4 options with one correct answer
+   - Detailed explanation of the correct answer
+   - Learning objective being tested
+4. Questions should test both knowledge and clinical application
+5. Difficulty should be appropriate for medical students
+
+Format your response as a JSON object with this structure:
+{
+  "title": "Assessment Title",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Question text",
+      "type": "multiple-choice",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": 0,
+      "explanation": "Detailed explanation",
+      "difficulty": "medium",
+      "topic": "Specific topic",
+      "learningObjective": "What this tests"
+    }
+  ]
+}`;
+  }
+
+  private parseTestResponse(content: string, weekContent: CurriculumWeek, numQuestions: number): GeneratedTest {
+    try {
+      // Try to extract JSON from the response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response');
+      }
+
+      const parsedData = JSON.parse(jsonMatch[0]);
       
       return {
-        title: `${phase} Week ${week} Assessment: ${weekData.title}`,
-        phase: phase.toUpperCase(),
-        week,
-        totalQuestions: questions.length,
-        questions,
-        timeAllowed,
+        title: parsedData.title || weekContent.title,
+        phase: 'Medical Education',
+        week: weekContent.week,
+        totalQuestions: parsedData.questions?.length || numQuestions,
+        questions: parsedData.questions || [],
+        timeAllowed: numQuestions * 2, // 2 minutes per question
         passingScore: 70
       };
-    } catch (error) {
-      console.error('Error generating test:', error);
-      // Fallback to predefined questions
-      return this.generateFallbackTest(weekData, phase, week, numQuestions);
-    }
-  }
-
-  private async generateQuestionsWithAI(
-    weekData: CurriculumWeek,
-    numQuestions: number,
-    difficulty: string,
-    questionTypes: string[]
-  ): Promise<TestQuestion[]> {
-    const prompt = `Create ${numQuestions} high-quality medical education test questions for the following curriculum week:
-
-Title: ${weekData.title}
-Topics: ${weekData.topics.join(', ')}
-Learning Objectives: ${weekData.learningObjectives.join('; ')}
-Key Terms: ${weekData.keyTerms.join(', ')}
-Assessment Focus: ${weekData.assessmentFocus.join(', ')}
-
-CRITICAL REQUIREMENTS for Educational Quality:
-
-1. QUESTION DESIGN:
-- Question types: ${questionTypes.join(', ')}
-- Difficulty level: ${difficulty === 'mixed' ? 'mix of easy, medium, and hard' : difficulty}
-- Create realistic clinical scenarios that test application, not just recall
-- Use patient presentations, lab values, imaging findings, or case scenarios
-- Avoid simple definition or fact-recall questions
-
-2. EXPLANATION REQUIREMENTS:
-- Overall explanation must be comprehensive (3-5 sentences minimum)
-- Connect the correct answer to underlying pathophysiology, mechanisms, or clinical reasoning
-- Explain WHY the concept is important in medical practice
-- Include relevant clinical pearls or teaching points
-- Reference how this applies to patient care or diagnosis
-
-3. OPTION FEEDBACK REQUIREMENTS (CRITICAL):
-Each option feedback must be educational and detailed:
-- For CORRECT options: Explain the mechanism, pathophysiology, or clinical reasoning that makes it correct
-- For INCORRECT options: Explain exactly why it's wrong, what condition/scenario it would apply to instead, and the key distinguishing features
-- Include specific medical facts, values, or criteria that differentiate options
-- Help students understand common misconceptions or similar conditions
-- Each feedback should be 2-3 sentences with specific medical details
-
-4. CLINICAL RELEVANCE:
-- Questions should reflect real medical scenarios students will encounter
-- Include appropriate medical terminology and professional language
-- Incorporate evidence-based medicine principles where applicable
-- Consider differential diagnoses, treatment decisions, or diagnostic workups
-
-Example format for multiple choice:
-{
-  "question": "A 45-year-old patient with diabetes presents with acute onset of severe abdominal pain radiating to the back, nausea, and vomiting. Laboratory results show elevated serum lipase (450 U/L, normal <160) and glucose of 180 mg/dL. What is the most likely diagnosis?",
-  "type": "multiple-choice",
-  "options": ["Acute cholecystitis", "Acute pancreatitis", "Peptic ulcer disease", "Diabetic ketoacidosis"],
-  "correctAnswer": 1,
-  "explanation": "This presentation is classic for acute pancreatitis, particularly in a diabetic patient. The combination of severe epigastric pain radiating to the back, elevated lipase levels (>3x normal), and associated nausea/vomiting are pathognomonic. Diabetes is a known risk factor for pancreatitis due to potential triglyceride elevation and pancreatic microvascular changes. The elevated lipase is more specific than amylase for pancreatic inflammation.",
-  "optionFeedback": [
-    "Acute cholecystitis typically presents with right upper quadrant pain, often triggered by fatty meals, with Murphy's sign on examination. While it can cause nausea, the pain rarely radiates to the back and lipase levels are usually normal. Ultrasound would show gallbladder wall thickening or stones.",
-    "Correct. Acute pancreatitis classically presents with severe epigastric pain radiating to the back, elevated pancreatic enzymes (lipase >3x normal), and systemic symptoms. In diabetics, this can be triggered by hypertriglyceridemia, medications, or idiopathic causes. The elevated lipase (450 U/L vs normal <160) confirms pancreatic inflammation.",
-    "Peptic ulcer disease typically causes burning epigastric pain that may improve with food or antacids. While it can cause nausea, the pain rarely radiates to the back and would not cause elevated lipase levels. Severe cases might present with bleeding (hematemesis/melena) or perforation symptoms.",
-    "Diabetic ketoacidosis presents with hyperglycemia (>250 mg/dL), ketosis, and metabolic acidosis. While this patient has diabetes, the glucose level (180 mg/dL) is not severely elevated, and the primary symptoms point to a pancreatic rather than metabolic cause. DKA would show ketones and anion gap acidosis on blood gas."
-  ],
-  "difficulty": "medium",
-  "topic": "Acute abdominal pain evaluation",
-  "learningObjective": "Diagnose acute pancreatitis using clinical presentation and laboratory findings"
-}
-
-Return only a JSON array of question objects with this enhanced educational content.`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are a senior medical education faculty member and board-certified physician creating rigorous assessment questions for Michigan State University College of Human Medicine students. Your questions must reflect real clinical scenarios that students will encounter in practice. Focus on clinical reasoning, differential diagnosis, and application of medical knowledge rather than rote memorization. Provide detailed, educational explanations that help students understand not just what is correct, but why other options are incorrect and how to distinguish between similar conditions. Your feedback should enhance learning and build clinical decision-making skills."
-        },
-        { role: "user", content: prompt }
-      ],
-      max_tokens: 4000,
-      temperature: 0.8
-    });
-
-    const response = completion.choices[0]?.message?.content;
-    if (!response) {
-      throw new Error('No response from AI');
-    }
-
-    try {
-      // Extract JSON from response (in case it's wrapped in markdown)
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
-      const jsonText = jsonMatch ? jsonMatch[0] : response;
-      const questions = JSON.parse(jsonText);
       
-      return questions.map((q: any, index: number) => ({
-        id: `q${index + 1}`,
-        question: q.question,
-        type: q.type,
-        options: q.options,
-        correctAnswer: q.correctAnswer,
-        explanation: q.explanation,
-        optionFeedback: q.optionFeedback,
-        difficulty: q.difficulty || 'medium',
-        topic: q.topic || weekData.topics[0],
-        learningObjective: q.learningObjective || weekData.learningObjectives[0]
-      }));
-    } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
-      throw new Error('Invalid AI response format');
+    } catch (error) {
+      console.error('Error parsing test response:', error);
+      throw new Error('Failed to parse AI response into test format');
     }
   }
 
-  private generateFallbackTest(
-    weekData: CurriculumWeek,
-    phase: string,
-    week: number,
-    numQuestions: number
-  ): GeneratedTest {
-    // Enhanced fallback questions with better educational content
+  private generateFallbackTest(weekContent: CurriculumWeek, numQuestions: number, difficulty: string): GeneratedTest {
     const questions: TestQuestion[] = [];
     
-    // Create clinically relevant questions based on topics and learning objectives
-    for (let i = 0; i < Math.min(numQuestions, weekData.topics.length); i++) {
-      const topic = weekData.topics[i];
-      const objective = weekData.learningObjectives[i] || weekData.learningObjectives[0];
-      
-      // Create more realistic clinical scenarios based on the topic
-      const clinicalScenarios = this.generateClinicalScenario(topic, weekData.title);
+    for (let i = 0; i < numQuestions; i++) {
+      const topic = weekContent.topics[i % weekContent.topics.length];
+      const objective = weekContent.learningObjectives[i % weekContent.learningObjectives.length];
       
       questions.push({
-        id: `q${i + 1}`,
-        question: clinicalScenarios.question,
-        type: 'multiple-choice',
-        options: clinicalScenarios.options,
-        correctAnswer: clinicalScenarios.correctAnswer,
-        explanation: `${topic} is a fundamental concept in ${weekData.title}. ${clinicalScenarios.explanation} Understanding this concept is crucial for medical practice as it directly impacts patient care, diagnosis, and treatment decisions. Students should focus on how this knowledge applies to real clinical scenarios and patient presentations.`,
-        optionFeedback: clinicalScenarios.optionFeedback,
-        difficulty: 'medium',
-        topic,
+        id: `fallback-${i + 1}`,
+        question: `Based on ${topic}, explain the key concepts related to ${objective.toLowerCase()}.`,
+        type: 'short-answer',
+        correctAnswer: `Key concepts for ${topic} include the fundamental principles covered in ${weekContent.title}.`,
+        explanation: `This question tests understanding of ${topic} as covered in the learning objectives.`,
+        difficulty: difficulty === 'mixed' ? ['easy', 'medium', 'difficult'][i % 3] as any : difficulty as any,
+        topic: topic,
         learningObjective: objective
       });
     }
 
     return {
-      title: `${phase} Week ${week} Assessment: ${weekData.title}`,
-      phase: phase.toUpperCase(),
-      week,
+      title: `${weekContent.title} - Assessment`,
+      phase: 'Medical Education',
+      week: weekContent.week,
       totalQuestions: questions.length,
-      questions,
-      timeAllowed: 30,
+      questions: questions,
+      timeAllowed: numQuestions * 2,
       passingScore: 70
     };
-  }
-
-  private generateClinicalScenario(topic: string, weekTitle: string) {
-    // Generate more realistic scenarios based on common medical topics
-    const scenarios: Record<string, {
-      question: string;
-      options: string[];
-      correctAnswer: number;
-      explanation: string;
-      optionFeedback: string[];
-    }> = {
-      "Cell structure": {
-        question: "A researcher studying cellular dysfunction notices abnormal protein accumulation in a patient's muscle biopsy. Which organelle is most likely impaired in this condition?",
-        options: ["Endoplasmic reticulum", "Nucleus", "Mitochondria", "Golgi apparatus"],
-        correctAnswer: 0,
-        explanation: "The endoplasmic reticulum (ER) is responsible for protein folding and quality control. When ER function is impaired, misfolded proteins accumulate, leading to cellular stress and dysfunction commonly seen in various diseases.",
-        optionFeedback: [
-          "Correct: The endoplasmic reticulum handles protein folding and quality control. ER stress occurs when protein folding capacity is overwhelmed, leading to accumulation of misfolded proteins. This is seen in conditions like myopathies, neurodegenerative diseases, and metabolic disorders.",
-          "Incorrect: While the nucleus controls protein synthesis through gene expression, it doesn't directly handle protein folding. Nuclear dysfunction would more likely present with transcriptional abnormalities rather than protein accumulation in the cytoplasm.",
-          "Incorrect: Mitochondrial dysfunction typically presents with energy metabolism problems, muscle weakness, and lactic acidosis rather than protein accumulation. Mitochondrial diseases affect ATP production and cellular respiration.",
-          "Incorrect: The Golgi apparatus modifies and packages proteins but isn't the primary site of protein folding. Golgi dysfunction would affect protein trafficking and post-translational modifications rather than causing protein accumulation."
-        ]
-      },
-      "Membrane dynamics": {
-        question: "A patient with cystic fibrosis has defective chloride transport across epithelial membranes. What type of membrane transport is primarily affected?",
-        options: ["Active transport", "Simple diffusion", "Facilitated diffusion", "Osmosis"],
-        correctAnswer: 0,
-        explanation: "Cystic fibrosis involves a defective CFTR protein that normally uses active transport to move chloride ions against their concentration gradient across epithelial membranes.",
-        optionFeedback: [
-          "Correct: The CFTR protein is an ATP-powered chloride channel that uses active transport to move chloride ions against their concentration gradient. This requires energy and is essential for proper mucus consistency in the lungs and digestive system.",
-          "Incorrect: Simple diffusion occurs down concentration gradients without protein assistance. CFTR specifically requires energy and protein-mediated transport, making this mechanism insufficient for chloride movement in epithelial cells.",
-          "Incorrect: While facilitated diffusion uses membrane proteins, it only moves substances down their concentration gradient without energy. CFTR requires ATP to move chloride against gradients, making this purely facilitated diffusion.",
-          "Incorrect: Osmosis specifically refers to water movement across membranes. While water balance is affected in CF due to altered chloride transport, the primary defect is in chloride ion transport, not osmosis itself."
-        ]
-      },
-      "Protein structure": {
-        question: "A patient presents with a connective tissue disorder affecting collagen. Which level of protein structure is most critical for collagen's mechanical strength?",
-        options: ["Primary structure", "Secondary structure", "Tertiary structure", "Quaternary structure"],
-        correctAnswer: 3,
-        explanation: "Collagen's quaternary structure involves three polypeptide chains wound together in a triple helix, providing the tensile strength essential for connective tissue function.",
-        optionFeedback: [
-          "Incorrect: Primary structure refers to the amino acid sequence. While glycine at every third position is important for collagen, the sequence alone doesn't provide mechanical strength without proper folding and assembly.",
-          "Incorrect: Secondary structure in collagen is primarily the polyproline II helix within each chain. While important, this doesn't provide the mechanical strength that comes from inter-chain interactions.",
-          "Incorrect: Tertiary structure refers to individual chain folding. Collagen chains have minimal tertiary structure compared to globular proteins, and strength comes from inter-chain rather than intra-chain interactions.",
-          "Correct: Quaternary structure involves three collagen chains (tropocollagen) wound together in a triple helix stabilized by hydrogen bonds and cross-links. This multi-chain structure provides the tremendous tensile strength that makes collagen ideal for connective tissues like tendons and ligaments."
-        ]
-      }
-    };
-
-    // Return a matching scenario or a generic one
-    return scenarios[topic] || {
-      question: `In the context of ${weekTitle.toLowerCase()}, which of the following best represents the clinical application of ${topic.toLowerCase()}?`,
-      options: [
-        `Direct clinical application in patient care`,
-        `Purely theoretical concept with no clinical relevance`,
-        `Only relevant in research settings`,
-        `A historical concept no longer used in medicine`
-      ],
-      correctAnswer: 0,
-      explanation: `${topic} has direct clinical applications that are essential for understanding patient pathophysiology and treatment approaches.`,
-      optionFeedback: [
-        `Correct: ${topic} has direct clinical applications that help healthcare providers understand disease mechanisms, interpret diagnostic tests, and make treatment decisions. Medical education emphasizes the practical application of basic science concepts.`,
-        `Incorrect: All concepts taught in medical school have clinical relevance. ${topic} provides foundational knowledge that helps explain disease processes and guide clinical reasoning in patient care.`,
-        `Incorrect: While ${topic} is studied in research, it has immediate clinical applications. Medical education focuses on clinically relevant science that practicing physicians use daily.`,
-        `Incorrect: ${topic} represents current understanding in medicine and continues to be relevant for modern medical practice. Medical curricula emphasize contemporary, evidence-based concepts.`
-      ]
-    };
-  }
-
-  getAvailableWeeks(phase: string): number[] {
-    const phaseData = curriculumData[phase.toUpperCase()];
-    return phaseData ? phaseData.map(week => week.week) : [];
-  }
-
-  getCurriculumWeek(phase: string, week: number): CurriculumWeek | null {
-    const phaseData = curriculumData[phase.toUpperCase()];
-    if (!phaseData) return null;
-    return phaseData.find(w => w.week === week) || null;
-  }
-
-  getAllPhases(): string[] {
-    return Object.keys(curriculumData);
   }
 }
 
