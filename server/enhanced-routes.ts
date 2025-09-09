@@ -243,6 +243,55 @@ CONTEXT HANDLING: If the user's message contains context like "The user previous
 Would you like me to focus on any specific subject area or study strategy?`;
     }
     
+    if (lowerMessage.includes('integrated') || lowerMessage.includes('systems') || lowerMessage.includes('organ system')) {
+      return `Here's how to master **Integrated Systems** for USMLE Step 1:
+
+## 🔄 **Systems-Based Learning Approach**
+• **Think Integration**: Understand how systems work together, not in isolation
+• **Clinical Correlation**: Connect normal function → pathophysiology → clinical presentation
+• **Cross-System Connections**: Learn how one system affects others
+
+## 🎯 **Major Integrated Systems for Step 1**
+
+### 🫀 **Cardiovascular System**
+• **Key Topics**: Heart physiology, blood pressure regulation, heart failure, arrhythmias
+• **Integration**: How CV affects renal, respiratory, endocrine systems
+• **Resources**: Costanzo Physiology, First Aid CV chapter
+
+### 🫁 **Respiratory System** 
+• **Key Topics**: Gas exchange, ventilation control, acid-base balance
+• **Integration**: Links to cardiovascular, renal pH regulation
+• **Resources**: Respiratory physiology videos, UWorld pulmonary questions
+
+### 🫘 **Renal System**
+• **Key Topics**: Filtration, electrolyte balance, acid-base, blood pressure control
+• **Integration**: Major regulator affecting all other systems
+• **Resources**: Renal physiology is crucial - focus heavily here
+
+### 🧠 **Endocrine System**
+• **Key Topics**: Hormone regulation, feedback loops, diabetes, thyroid
+• **Integration**: Controls metabolism, growth, reproduction across systems
+• **Resources**: Endocrine pathology high-yield for Step 1
+
+### 🍽️ **Gastrointestinal System**
+• **Key Topics**: Digestion, absorption, liver function, GI hormones
+• **Integration**: Nutrition affects all systems, liver metabolism central
+
+## 📚 **Study Strategy for Systems Integration**
+• **Start with Normal**: Master normal physiology first
+• **Add Pathology**: Learn what goes wrong and why
+• **Clinical Cases**: Practice integrated thinking with UWorld
+• **Concept Maps**: Draw connections between systems
+
+## 🔬 **CHM Integration Resources**
+• M1 systems-based curriculum modules
+• Case-based learning sessions
+• Clinical correlations in each system block
+• Integration exercises in Canvas
+
+Focus on understanding **HOW** and **WHY** systems interact - this is key for Step 1 success!`;
+    }
+    
     if (lowerMessage.includes('pathology') || lowerMessage.includes('pathophysiology')) {
       return `Here's how to master **Pathology** for USMLE Step 1 and medical school:
 
