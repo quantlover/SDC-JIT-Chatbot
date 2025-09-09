@@ -30,12 +30,378 @@ export interface TestQuestion {
 export interface GeneratedTest {
   title: string;
   phase: string;
-  week: number;
+  week?: number;
+  topic?: string; // For topic-specific tests
+  difficulty?: 'easy' | 'medium' | 'difficult';
   totalQuestions: number;
   questions: TestQuestion[];
   timeAllowed: number; // in minutes
   passingScore: number; // percentage
 }
+
+// Medical topic test banks organized by system and difficulty
+export const medicalTopicTestBanks = {
+  cardiovascular: {
+    easy: [
+      {
+        id: 'cv-easy-1',
+        question: 'What is the normal resting heart rate range for adults?',
+        type: 'multiple-choice' as const,
+        options: ['40-60 bpm', '60-100 bpm', '100-120 bpm', '120-150 bpm'],
+        correctAnswer: 1,
+        explanation: 'The normal resting heart rate for adults is 60-100 beats per minute.',
+        difficulty: 'easy' as const,
+        topic: 'Cardiovascular Physiology',
+        learningObjective: 'Identify normal cardiac vital signs'
+      },
+      {
+        id: 'cv-easy-2',
+        question: 'Which chamber of the heart pumps blood to the systemic circulation?',
+        type: 'multiple-choice' as const,
+        options: ['Right atrium', 'Right ventricle', 'Left atrium', 'Left ventricle'],
+        correctAnswer: 3,
+        explanation: 'The left ventricle pumps oxygenated blood to the systemic circulation.',
+        difficulty: 'easy' as const,
+        topic: 'Cardiac Anatomy',
+        learningObjective: 'Identify heart chamber functions'
+      }
+    ],
+    medium: [
+      {
+        id: 'cv-med-1',
+        question: 'A patient presents with chest pain and ST-elevation on ECG leads II, III, and aVF. Which coronary artery is most likely occluded?',
+        type: 'multiple-choice' as const,
+        options: ['Left anterior descending', 'Right coronary artery', 'Left circumflex', 'Left main'],
+        correctAnswer: 1,
+        explanation: 'ST-elevation in leads II, III, and aVF indicates an inferior wall MI, typically caused by RCA occlusion.',
+        difficulty: 'medium' as const,
+        topic: 'Myocardial Infarction',
+        learningObjective: 'Correlate ECG findings with coronary anatomy'
+      }
+    ],
+    difficult: [
+      {
+        id: 'cv-hard-1',
+        question: 'Calculate the cardiac output for a patient with stroke volume of 70mL and heart rate of 80 bpm, then determine the ejection fraction if end-diastolic volume is 140mL.',
+        type: 'short-answer' as const,
+        correctAnswer: 'CO = 5.6 L/min, EF = 50%',
+        explanation: 'CO = SV × HR = 70mL × 80 = 5600mL/min = 5.6L/min. EF = SV/EDV = 70/140 = 0.5 = 50%',
+        difficulty: 'difficult' as const,
+        topic: 'Cardiac Output Calculations',
+        learningObjective: 'Calculate and interpret hemodynamic parameters'
+      }
+    ]
+  },
+  respiratory: {
+    easy: [
+      {
+        id: 'resp-easy-1',
+        question: 'What is the primary muscle of inspiration?',
+        type: 'multiple-choice' as const,
+        options: ['Intercostal muscles', 'Diaphragm', 'Accessory muscles', 'Abdominal muscles'],
+        correctAnswer: 1,
+        explanation: 'The diaphragm is the primary muscle responsible for inspiration.',
+        difficulty: 'easy' as const,
+        topic: 'Respiratory Mechanics',
+        learningObjective: 'Identify muscles of respiration'
+      }
+    ],
+    medium: [
+      {
+        id: 'resp-med-1',
+        question: 'A patient with COPD shows decreased FEV1/FVC ratio. What does this indicate?',
+        type: 'multiple-choice' as const,
+        options: ['Restrictive disease', 'Obstructive disease', 'Normal spirometry', 'Neuromuscular weakness'],
+        correctAnswer: 1,
+        explanation: 'Decreased FEV1/FVC ratio (<0.7) indicates obstructive lung disease like COPD.',
+        difficulty: 'medium' as const,
+        topic: 'Pulmonary Function Tests',
+        learningObjective: 'Interpret spirometry results'
+      }
+    ],
+    difficult: [
+      {
+        id: 'resp-hard-1',
+        question: 'Calculate the A-a gradient for a patient breathing room air with PaO2 = 80 mmHg, given PAO2 = 100 mmHg. What does this suggest?',
+        type: 'short-answer' as const,
+        correctAnswer: 'A-a gradient = 20 mmHg, suggests mild gas exchange impairment',
+        explanation: 'A-a gradient = PAO2 - PaO2 = 100 - 80 = 20 mmHg. Normal is <15 mmHg, so this suggests mild impairment.',
+        difficulty: 'difficult' as const,
+        topic: 'Gas Exchange',
+        learningObjective: 'Calculate and interpret A-a gradient'
+      }
+    ]
+  },
+  renal: {
+    easy: [
+      {
+        id: 'renal-easy-1',
+        question: 'Which part of the nephron is primarily responsible for filtration?',
+        type: 'multiple-choice' as const,
+        options: ['Proximal tubule', 'Loop of Henle', 'Glomerulus', 'Distal tubule'],
+        correctAnswer: 2,
+        explanation: 'The glomerulus is the site of filtration in the nephron.',
+        difficulty: 'easy' as const,
+        topic: 'Renal Anatomy',
+        learningObjective: 'Identify nephron components and functions'
+      }
+    ],
+    medium: [
+      {
+        id: 'renal-med-1',
+        question: 'A patient has proteinuria, hypoalbuminemia, and edema. What syndrome is this?',
+        type: 'multiple-choice' as const,
+        options: ['Nephritic syndrome', 'Nephrotic syndrome', 'Acute tubular necrosis', 'Chronic kidney disease'],
+        correctAnswer: 1,
+        explanation: 'The triad of proteinuria, hypoalbuminemia, and edema defines nephrotic syndrome.',
+        difficulty: 'medium' as const,
+        topic: 'Glomerular Disease',
+        learningObjective: 'Distinguish nephritic vs nephrotic syndromes'
+      }
+    ],
+    difficult: [
+      {
+        id: 'renal-hard-1',
+        question: 'Calculate GFR using creatinine clearance: Urine creatinine = 120 mg/dL, Serum creatinine = 1.2 mg/dL, Urine flow = 1.5 mL/min.',
+        type: 'short-answer' as const,
+        correctAnswer: 'GFR = 150 mL/min',
+        explanation: 'GFR = (Urine creatinine × Urine flow) / Serum creatinine = (120 × 1.5) / 1.2 = 150 mL/min',
+        difficulty: 'difficult' as const,
+        topic: 'Renal Function Assessment',
+        learningObjective: 'Calculate GFR and interpret results'
+      }
+    ]
+  },
+  immunology: {
+    easy: [
+      {
+        id: 'immuno-easy-1',
+        question: 'Which type of immunity provides immediate, non-specific protection?',
+        type: 'multiple-choice' as const,
+        options: ['Adaptive immunity', 'Innate immunity', 'Humoral immunity', 'Cell-mediated immunity'],
+        correctAnswer: 1,
+        explanation: 'Innate immunity provides immediate, non-specific protection against pathogens.',
+        difficulty: 'easy' as const,
+        topic: 'Immune System Overview',
+        learningObjective: 'Distinguish innate vs adaptive immunity'
+      }
+    ],
+    medium: [
+      {
+        id: 'immuno-med-1',
+        question: 'A patient with peanut allergy experiences anaphylaxis. What type of hypersensitivity is this?',
+        type: 'multiple-choice' as const,
+        options: ['Type I', 'Type II', 'Type III', 'Type IV'],
+        correctAnswer: 0,
+        explanation: 'Anaphylaxis is a Type I (immediate) hypersensitivity reaction mediated by IgE.',
+        difficulty: 'medium' as const,
+        topic: 'Hypersensitivity Reactions',
+        learningObjective: 'Classify hypersensitivity reactions'
+      }
+    ],
+    difficult: [
+      {
+        id: 'immuno-hard-1',
+        question: 'Explain the molecular mechanism of MHC Class I antigen presentation and its clinical significance in transplant rejection.',
+        type: 'short-answer' as const,
+        correctAnswer: 'MHC I presents intracellular peptides to CD8+ T cells, critical for transplant compatibility',
+        explanation: 'MHC Class I molecules present intracellular peptides on all nucleated cells to CD8+ T cells. Mismatch leads to transplant rejection.',
+        difficulty: 'difficult' as const,
+        topic: 'Antigen Presentation',
+        learningObjective: 'Explain MHC function and transplant immunology'
+      }
+    ]
+  }
+};
+
+// Medical topic test banks organized by system and difficulty
+export const medicalTopicTestBanks = {
+  cardiovascular: {
+    easy: [
+      {
+        id: 'cv-easy-1',
+        question: 'What is the normal resting heart rate range for adults?',
+        type: 'multiple-choice' as const,
+        options: ['40-60 bpm', '60-100 bpm', '100-120 bpm', '120-150 bpm'],
+        correctAnswer: 1,
+        explanation: 'The normal resting heart rate for adults is 60-100 beats per minute.',
+        difficulty: 'easy' as const,
+        topic: 'Cardiovascular Physiology',
+        learningObjective: 'Identify normal cardiac vital signs'
+      },
+      {
+        id: 'cv-easy-2',
+        question: 'Which chamber of the heart pumps blood to the systemic circulation?',
+        type: 'multiple-choice' as const,
+        options: ['Right atrium', 'Right ventricle', 'Left atrium', 'Left ventricle'],
+        correctAnswer: 3,
+        explanation: 'The left ventricle pumps oxygenated blood to the systemic circulation.',
+        difficulty: 'easy' as const,
+        topic: 'Cardiac Anatomy',
+        learningObjective: 'Identify heart chamber functions'
+      },
+      {
+        id: 'cv-easy-3',
+        question: 'What does systolic blood pressure represent?',
+        type: 'multiple-choice' as const,
+        options: ['Pressure during ventricular filling', 'Pressure during ventricular contraction', 'Pressure in the atria', 'Pressure in the veins'],
+        correctAnswer: 1,
+        explanation: 'Systolic blood pressure represents the pressure in arteries during ventricular contraction.',
+        difficulty: 'easy' as const,
+        topic: 'Blood Pressure',
+        learningObjective: 'Define systolic and diastolic pressure'
+      }
+    ],
+    medium: [
+      {
+        id: 'cv-med-1',
+        question: 'A patient presents with chest pain and ST-elevation on ECG leads II, III, and aVF. Which coronary artery is most likely occluded?',
+        type: 'multiple-choice' as const,
+        options: ['Left anterior descending', 'Right coronary artery', 'Left circumflex', 'Left main'],
+        correctAnswer: 1,
+        explanation: 'ST-elevation in leads II, III, and aVF indicates an inferior wall MI, typically caused by RCA occlusion.',
+        difficulty: 'medium' as const,
+        topic: 'Myocardial Infarction',
+        learningObjective: 'Correlate ECG findings with coronary anatomy'
+      },
+      {
+        id: 'cv-med-2',
+        question: 'A patient with heart failure shows increased JVD and peripheral edema but clear lungs. What type of heart failure is this?',
+        type: 'multiple-choice' as const,
+        options: ['Left-sided systolic', 'Left-sided diastolic', 'Right-sided', 'Biventricular'],
+        correctAnswer: 2,
+        explanation: 'Right-sided heart failure presents with systemic congestion (JVD, edema) but spares the lungs.',
+        difficulty: 'medium' as const,
+        topic: 'Heart Failure',
+        learningObjective: 'Differentiate types of heart failure'
+      }
+    ],
+    difficult: [
+      {
+        id: 'cv-hard-1',
+        question: 'Calculate the cardiac output for a patient with stroke volume of 70mL and heart rate of 80 bpm, then determine the ejection fraction if end-diastolic volume is 140mL.',
+        type: 'short-answer' as const,
+        correctAnswer: 'CO = 5.6 L/min, EF = 50%',
+        explanation: 'CO = SV × HR = 70mL × 80 = 5600mL/min = 5.6L/min. EF = SV/EDV = 70/140 = 0.5 = 50%',
+        difficulty: 'difficult' as const,
+        topic: 'Cardiac Output Calculations',
+        learningObjective: 'Calculate and interpret hemodynamic parameters'
+      },
+      {
+        id: 'cv-hard-2',
+        question: 'A patient has aortic stenosis with valve area of 0.8 cm². Calculate the pressure gradient if cardiac output is 5 L/min. What is the clinical significance?',
+        type: 'short-answer' as const,
+        correctAnswer: 'Severe aortic stenosis with significant pressure gradient',
+        explanation: 'Valve area <1.0 cm² indicates severe aortic stenosis. High gradient suggests significant obstruction requiring intervention.',
+        difficulty: 'difficult' as const,
+        topic: 'Valvular Disease',
+        learningObjective: 'Calculate valve parameters and assess severity'
+      }
+    ]
+  },
+  respiratory: {
+    easy: [
+      {
+        id: 'resp-easy-1',
+        question: 'What is the primary muscle of inspiration?',
+        type: 'multiple-choice' as const,
+        options: ['Intercostal muscles', 'Diaphragm', 'Accessory muscles', 'Abdominal muscles'],
+        correctAnswer: 1,
+        explanation: 'The diaphragm is the primary muscle responsible for inspiration.',
+        difficulty: 'easy' as const,
+        topic: 'Respiratory Mechanics',
+        learningObjective: 'Identify muscles of respiration'
+      },
+      {
+        id: 'resp-easy-2',
+        question: 'Where does gas exchange occur in the lungs?',
+        type: 'multiple-choice' as const,
+        options: ['Bronchi', 'Bronchioles', 'Alveoli', 'Trachea'],
+        correctAnswer: 2,
+        explanation: 'Gas exchange occurs in the alveoli, where oxygen and carbon dioxide cross the respiratory membrane.',
+        difficulty: 'easy' as const,
+        topic: 'Lung Anatomy',
+        learningObjective: 'Identify sites of gas exchange'
+      }
+    ],
+    medium: [
+      {
+        id: 'resp-med-1',
+        question: 'A patient with COPD shows decreased FEV1/FVC ratio. What does this indicate?',
+        type: 'multiple-choice' as const,
+        options: ['Restrictive disease', 'Obstructive disease', 'Normal spirometry', 'Neuromuscular weakness'],
+        correctAnswer: 1,
+        explanation: 'Decreased FEV1/FVC ratio (<0.7) indicates obstructive lung disease like COPD.',
+        difficulty: 'medium' as const,
+        topic: 'Pulmonary Function Tests',
+        learningObjective: 'Interpret spirometry results'
+      },
+      {
+        id: 'resp-med-2',
+        question: 'A patient presents with sudden onset dyspnea and pleuritic chest pain. CXR shows absence of lung markings in the right upper lobe. What is the most likely diagnosis?',
+        type: 'multiple-choice' as const,
+        options: ['Pneumonia', 'Pneumothorax', 'Pulmonary embolism', 'Pleural effusion'],
+        correctAnswer: 1,
+        explanation: 'Sudden dyspnea with absence of lung markings on CXR indicates pneumothorax.',
+        difficulty: 'medium' as const,
+        topic: 'Pneumothorax',
+        learningObjective: 'Recognize pneumothorax presentation and imaging'
+      }
+    ],
+    difficult: [
+      {
+        id: 'resp-hard-1',
+        question: 'Calculate the A-a gradient for a patient breathing room air with PaO2 = 80 mmHg, given PAO2 = 100 mmHg. What does this suggest?',
+        type: 'short-answer' as const,
+        correctAnswer: 'A-a gradient = 20 mmHg, suggests mild gas exchange impairment',
+        explanation: 'A-a gradient = PAO2 - PaO2 = 100 - 80 = 20 mmHg. Normal is <15 mmHg, so this suggests mild impairment.',
+        difficulty: 'difficult' as const,
+        topic: 'Gas Exchange',
+        learningObjective: 'Calculate and interpret A-a gradient'
+      }
+    ]
+  },
+  renal: {
+    easy: [
+      {
+        id: 'renal-easy-1',
+        question: 'Which part of the nephron is primarily responsible for filtration?',
+        type: 'multiple-choice' as const,
+        options: ['Proximal tubule', 'Loop of Henle', 'Glomerulus', 'Distal tubule'],
+        correctAnswer: 2,
+        explanation: 'The glomerulus is the site of filtration in the nephron.',
+        difficulty: 'easy' as const,
+        topic: 'Renal Anatomy',
+        learningObjective: 'Identify nephron components and functions'
+      }
+    ],
+    medium: [
+      {
+        id: 'renal-med-1',
+        question: 'A patient has proteinuria, hypoalbuminemia, and edema. What syndrome is this?',
+        type: 'multiple-choice' as const,
+        options: ['Nephritic syndrome', 'Nephrotic syndrome', 'Acute tubular necrosis', 'Chronic kidney disease'],
+        correctAnswer: 1,
+        explanation: 'The triad of proteinuria, hypoalbuminemia, and edema defines nephrotic syndrome.',
+        difficulty: 'medium' as const,
+        topic: 'Glomerular Disease',
+        learningObjective: 'Distinguish nephritic vs nephrotic syndromes'
+      }
+    ],
+    difficult: [
+      {
+        id: 'renal-hard-1',
+        question: 'Calculate GFR using creatinine clearance: Urine creatinine = 120 mg/dL, Serum creatinine = 1.2 mg/dL, Urine flow = 1.5 mL/min.',
+        type: 'short-answer' as const,
+        correctAnswer: 'GFR = 150 mL/min',
+        explanation: 'GFR = (Urine creatinine × Urine flow) / Serum creatinine = (120 × 1.5) / 1.2 = 150 mL/min',
+        difficulty: 'difficult' as const,
+        topic: 'Renal Function Assessment',
+        learningObjective: 'Calculate GFR and interpret results'
+      }
+    ]
+  }
+};
 
 // Comprehensive curriculum data by phase and week
 export const curriculumData: Record<string, CurriculumWeek[]> = {
