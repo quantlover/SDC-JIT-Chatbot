@@ -292,6 +292,61 @@ Would you like me to focus on any specific subject area or study strategy?`;
 Focus on understanding **HOW** and **WHY** systems interact - this is key for Step 1 success!`;
     }
     
+    if (lowerMessage.includes('cardio') || lowerMessage.includes('cardiovascular') || lowerMessage.includes('heart')) {
+      return `Here's your comprehensive **Cardiovascular System** prep guide for USMLE Step 1:
+
+## 🫀 **Core Cardiovascular Topics for Step 1**
+
+### ⚡ **Essential Physiology**
+• **Cardiac Cycle**: Systole, diastole, pressure-volume loops
+• **Frank-Starling Mechanism**: Preload and cardiac output relationship
+• **Blood Pressure Regulation**: Baroreceptors, RAAS, autonomic control
+• **Cardiac Output**: CO = HR × SV, factors affecting each
+• **Vascular Function**: Resistance, compliance, flow dynamics
+
+### 🔬 **High-Yield Pathology**
+• **Heart Failure**: Systolic vs diastolic, compensatory mechanisms
+• **Myocardial Infarction**: STEMI vs NSTEMI, complications
+• **Arrhythmias**: A-fib, V-fib, heart blocks, mechanisms
+• **Valvular Disease**: Stenosis vs regurgitation, murmurs
+• **Hypertension**: Primary vs secondary, target organ damage
+
+### 💊 **Pharmacology Focus**
+• **ACE Inhibitors/ARBs**: Mechanism, side effects, indications
+• **Beta-Blockers**: Selective vs non-selective, contraindications  
+• **Diuretics**: Thiazide, loop, K+-sparing mechanisms
+• **Calcium Channel Blockers**: DHP vs non-DHP differences
+• **Anti-arrhythmics**: Class I-IV mechanisms and uses
+
+## 📚 **Study Strategy**
+• **Start with Normal**: Master cardiac cycle and hemodynamics first
+• **Pathoma Cardiovascular**: Essential for understanding pathology
+• **UWorld Cardio Questions**: Practice clinical application extensively
+• **ECG Interpretation**: Learn systematic approach to reading ECGs
+• **Murmur Recognition**: Timing, location, radiation patterns
+
+## 🎯 **High-Yield Study Resources**
+• **Costanzo Physiology**: Chapter 4 (Cardiovascular)
+• **First Aid**: Cardiovascular chapter (very high-yield)
+• **Pathoma**: Cardiovascular pathology videos
+• **UWorld**: Cardiovascular question bank
+• **ECG interpretation guides**: 12-lead ECG systematic approach
+
+## 🔬 **CHM Cardiovascular Resources**
+• M1 cardiovascular physiology modules on Canvas
+• Cardiac auscultation practice in Clinical Skills Center
+• Cardiovascular pathology lab slides and cases
+• ECG interpretation workshops
+
+## ⚡ **Must-Know Clinical Correlations**
+• **Chest Pain**: MI vs angina vs PE differential
+• **Heart Failure**: Symptoms, staging, treatment approach
+• **Shock**: Cardiogenic vs distributive vs hypovolemic
+• **Murmurs**: Innocent vs pathologic, when to worry
+
+**Key Tip**: Cardiovascular is one of the highest-yield topics for Step 1 - invest significant time here!`;
+    }
+    
     if (lowerMessage.includes('pathology') || lowerMessage.includes('pathophysiology')) {
       return `Here's how to master **Pathology** for USMLE Step 1 and medical school:
 
