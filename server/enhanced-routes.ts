@@ -347,6 +347,257 @@ Focus on understanding **HOW** and **WHY** systems interact - this is key for St
 **Key Tip**: Cardiovascular is one of the highest-yield topics for Step 1 - invest significant time here!`;
     }
     
+    if (lowerMessage.includes('respiratory') || lowerMessage.includes('pulmonary') || lowerMessage.includes('lung')) {
+      return `Here's your **Respiratory System** prep guide for USMLE Step 1:
+
+## 🫁 **Core Respiratory Topics**
+
+### ⚡ **Essential Physiology**
+• **Gas Exchange**: Diffusion, ventilation-perfusion matching
+• **Mechanics of Breathing**: Compliance, resistance, work of breathing
+• **Control of Breathing**: Central and peripheral chemoreceptors
+• **Acid-Base Balance**: Respiratory compensation mechanisms
+• **Oxygen Transport**: Hemoglobin saturation, oxygen-hemoglobin curve
+
+### 🔬 **High-Yield Pathology**
+• **Asthma vs COPD**: Mechanisms, triggers, treatment differences
+• **Pneumonia**: Types, pathogens, complications
+• **Pulmonary Embolism**: Risk factors, presentation, diagnosis
+• **ARDS**: Pathophysiology, management
+• **Lung Cancer**: Types, staging, risk factors
+
+### 📚 **Study Resources**
+• **Costanzo Physiology**: Respiratory chapters
+• **First Aid**: Respiratory system (high-yield)
+• **Pathoma**: Respiratory pathology videos
+• **UWorld**: Pulmonary questions and explanations
+
+**Focus**: Master gas exchange principles and acid-base balance - frequently tested!`;
+    }
+    
+    if (lowerMessage.includes('renal') || lowerMessage.includes('kidney') || lowerMessage.includes('nephrology')) {
+      return `Here's your **Renal System** prep guide for USMLE Step 1:
+
+## 🫘 **Core Renal Topics**
+
+### ⚡ **Essential Physiology**
+• **Filtration**: GFR, clearance, filtration fraction
+• **Tubular Function**: Reabsorption and secretion mechanisms
+• **Acid-Base Regulation**: Bicarbonate handling, compensation
+• **Electrolyte Balance**: Na+, K+, Ca2+, PO4- regulation
+• **Fluid Balance**: ADH, aldosterone, diuretics
+
+### 🔬 **High-Yield Pathology**
+• **Acute Kidney Injury**: Pre-renal, intrinsic, post-renal causes
+• **Chronic Kidney Disease**: Stages, complications, management
+• **Glomerular Disease**: Nephritic vs nephrotic syndromes
+• **Electrolyte Disorders**: Hypo/hypernatremia, hypo/hyperkalemia
+• **Acid-Base Disorders**: Metabolic and respiratory acidosis/alkalosis
+
+### 📚 **Study Strategy**
+• **Master Normal Function**: Understand filtration and tubular processes
+• **Acid-Base**: Critical for Step 1 - practice calculations
+• **Pathoma Renal**: Essential for glomerular diseases
+• **UWorld**: Practice nephrology questions extensively
+
+**Key Tip**: Renal physiology is foundational for understanding many other systems!`;
+    }
+    
+    if (lowerMessage.includes('endocrine') || lowerMessage.includes('hormone') || lowerMessage.includes('diabetes')) {
+      return `Here's your **Endocrine System** prep guide for USMLE Step 1:
+
+## 🧠 **Core Endocrine Topics**
+
+### ⚡ **Essential Physiology**
+• **Hypothalamic-Pituitary Axis**: Feedback loops, releasing hormones
+• **Thyroid Function**: T3/T4 synthesis, regulation, metabolism
+• **Adrenal Function**: Cortisol, aldosterone, catecholamines
+• **Pancreatic Hormones**: Insulin, glucagon, glucose regulation
+• **Reproductive Hormones**: GnRH, LH, FSH, sex hormones
+
+### 🔬 **High-Yield Pathology**
+• **Diabetes**: Type 1 vs Type 2, complications, management
+• **Thyroid Disorders**: Hyper/hypothyroidism, thyroid cancer
+• **Adrenal Disorders**: Addison's, Cushing's, pheochromocytoma
+• **Pituitary Disorders**: Adenomas, diabetes insipidus
+• **Reproductive Disorders**: PCOS, infertility, menstrual disorders
+
+### 💊 **Pharmacology**
+• **Diabetes Medications**: Insulin types, metformin, sulfonylureas
+• **Thyroid Medications**: Levothyroxine, antithyroid drugs
+• **Steroid Hormones**: Glucocorticoids, mineralocorticoids
+
+**Focus**: Master feedback loops and diabetes - very high-yield for Step 1!`;
+    }
+    
+    if (lowerMessage.includes('gastrointestinal') || lowerMessage.includes('digestive') || lowerMessage.includes('liver') || lowerMessage.includes('gi')) {
+      return `Here's your **Gastrointestinal System** prep guide for USMLE Step 1:
+
+## 🍽️ **Core GI Topics**
+
+### ⚡ **Essential Physiology**
+• **Digestion and Absorption**: Carbs, proteins, fats, vitamins
+• **GI Hormones**: Gastrin, CCK, secretin, GIP functions
+• **Gastric Acid Secretion**: Regulation, phases
+• **Hepatic Function**: Metabolism, detoxification, synthesis
+• **Bile Acid Metabolism**: Enterohepatic circulation
+
+### 🔬 **High-Yield Pathology**
+• **Peptic Ulcer Disease**: H. pylori, NSAIDs, complications
+• **Inflammatory Bowel Disease**: Crohn's vs UC differences
+• **Liver Disease**: Hepatitis, cirrhosis, liver failure
+• **GI Bleeding**: Upper vs lower, causes, management
+• **Malabsorption**: Celiac, pancreatic insufficiency
+
+### 💊 **Pharmacology**
+• **Acid Suppression**: PPIs, H2 blockers, antacids
+• **IBD Treatment**: 5-ASA, steroids, biologics
+• **Hepatitis Treatment**: Antivirals, interferons
+
+**Focus**: Master absorption mechanisms and liver function - frequently tested!`;
+    }
+    
+    if (lowerMessage.includes('nervous') || lowerMessage.includes('neuro') || lowerMessage.includes('brain') || lowerMessage.includes('cns')) {
+      return `Here's your **Nervous System** prep guide for USMLE Step 1:
+
+## 🧠 **Core Nervous System Topics**
+
+### ⚡ **Essential Neuroanatomy**
+• **CNS Organization**: Cerebrum, cerebellum, brainstem, spinal cord
+• **Functional Areas**: Motor, sensory, language, memory regions
+• **Cranial Nerves**: All 12 nerves, functions, testing
+• **Spinal Tracts**: Ascending and descending pathways
+• **Blood Supply**: Circle of Willis, vascular territories
+
+### 🔬 **High-Yield Pathology**
+• **Stroke**: Ischemic vs hemorrhagic, territories, symptoms
+• **Seizures**: Types, mechanisms, antiepileptic drugs
+• **Neurodegenerative**: Alzheimer's, Parkinson's, ALS
+• **Infections**: Meningitis, encephalitis, brain abscess
+• **Tumors**: Primary vs metastatic, types, locations
+
+### 💊 **Neuropharmacology**
+• **Antiepileptics**: Mechanisms, side effects, drug interactions
+• **Antipsychotics**: Typical vs atypical, side effects
+• **Antidepressants**: SSRIs, tricyclics, MAOIs
+
+**Focus**: Neuroanatomy is complex but high-yield - use visual resources!`;
+    }
+    
+    if (lowerMessage.includes('immunology') || lowerMessage.includes('immune') || lowerMessage.includes('antibody')) {
+      return `Here's your **Immunology** prep guide for USMLE Step 1:
+
+## 🛡️ **Core Immunology Topics**
+
+### ⚡ **Essential Concepts**
+• **Innate Immunity**: Barriers, complement, phagocytes, NK cells
+• **Adaptive Immunity**: T cells, B cells, antibodies, memory
+• **Antigen Presentation**: MHC I vs MHC II, processing pathways
+• **T Cell Subsets**: Th1, Th2, Th17, Treg functions
+• **Antibody Classes**: IgG, IgM, IgA, IgE, IgD functions
+
+### 🔬 **High-Yield Pathology**
+• **Hypersensitivity**: Types I-IV mechanisms and examples
+• **Autoimmune Diseases**: SLE, RA, MS, type 1 diabetes
+• **Immunodeficiencies**: Primary vs secondary, presentations
+• **Transplant Rejection**: Hyperacute, acute, chronic mechanisms
+• **Tumor Immunology**: Immune surveillance, escape mechanisms
+
+### 💊 **Immunopharmacology**
+• **Immunosuppressants**: Steroids, calcineurin inhibitors, biologics
+• **Monoclonal Antibodies**: Targets and therapeutic uses
+• **Vaccines**: Types, mechanisms, schedules
+
+**Focus**: Master hypersensitivity reactions and autoimmune diseases - very testable!`;
+    }
+    
+    if (lowerMessage.includes('microbiology') || lowerMessage.includes('bacteria') || lowerMessage.includes('virus') || lowerMessage.includes('micro')) {
+      return `Here's your **Microbiology** prep guide for USMLE Step 1:
+
+## 🦠 **Core Microbiology Topics**
+
+### ⚡ **Bacterial Classification**
+• **Gram Staining**: Positive vs negative, cell wall differences
+• **Morphology**: Cocci, rods, spirals, arrangements
+• **Metabolism**: Aerobic, anaerobic, facultative
+• **Virulence Factors**: Toxins, adhesins, capsules
+• **Antibiotic Resistance**: Mechanisms, important resistances
+
+### 🔬 **High-Yield Organisms**
+• **Gram+ Cocci**: Staph, Strep species and diseases
+• **Gram- Rods**: E. coli, Salmonella, Pseudomonas
+• **Anaerobes**: C. diff, Bacteroides, gas gangrene
+• **Atypicals**: Chlamydia, Mycoplasma, Rickettsia
+• **Mycobacteria**: TB, atypical mycobacteria
+
+### 🦠 **Virology Essentials**
+• **DNA Viruses**: Herpes family, pox, papilloma
+• **RNA Viruses**: Influenza, HIV, hepatitis, corona
+• **Viral Replication**: Life cycles, targets for therapy
+
+### 💊 **Antimicrobial Therapy**
+• **Cell Wall Inhibitors**: Penicillins, cephalosporins
+• **Protein Synthesis**: Aminoglycosides, macrolides
+• **Antivirals**: Mechanisms, resistance patterns
+
+**Study Tip**: Use Sketchy Micro for visual mnemonics - very effective for memorization!`;
+    }
+    
+    if (lowerMessage.includes('biochemistry') || lowerMessage.includes('metabolism') || lowerMessage.includes('enzyme')) {
+      return `Here's your **Biochemistry** prep guide for USMLE Step 1:
+
+## ⚗️ **Core Biochemistry Topics**
+
+### ⚡ **Metabolism Pathways**
+• **Glycolysis**: Steps, regulation, clinical correlations
+• **Citric Acid Cycle**: Steps, regulation, anaplerotic reactions
+• **Electron Transport**: Complexes, ATP synthesis, inhibitors
+• **Gluconeogenesis**: Steps, regulation, substrates
+• **Fatty Acid Metabolism**: Beta-oxidation, synthesis
+
+### 🔬 **High-Yield Areas**
+• **Enzyme Kinetics**: Michaelis-Menten, competitive inhibition
+• **Protein Structure**: Primary-quaternary, folding diseases
+• **Genetics**: DNA replication, transcription, translation
+• **Vitamins**: Functions, deficiencies, coenzymes
+• **Amino Acids**: Essential, metabolic disorders
+
+### 💊 **Clinical Correlations**
+• **Metabolic Disorders**: PKU, glycogen storage diseases
+• **Drug Mechanisms**: Enzyme inhibitors, antimetabolites
+• **Nutritional Diseases**: Vitamin deficiencies, malnutrition
+
+**Focus**: Master glycolysis and TCA cycle - foundation for many other topics!`;
+    }
+    
+    if (lowerMessage.includes('pharmacology') || lowerMessage.includes('drug') || lowerMessage.includes('medication')) {
+      return `Here's your **Pharmacology** prep guide for USMLE Step 1:
+
+## 💊 **Core Pharmacology Topics**
+
+### ⚡ **Pharmacokinetics**
+• **ADME**: Absorption, distribution, metabolism, excretion
+• **Clearance**: Renal, hepatic, total body clearance
+• **Half-Life**: Calculation, clinical significance
+• **Bioavailability**: First-pass effect, bioequivalence
+• **Drug Interactions**: CYP450 enzymes, protein binding
+
+### 🔬 **Pharmacodynamics**
+• **Receptor Theory**: Agonists, antagonists, partial agonists
+• **Dose-Response**: ED50, LD50, therapeutic index
+• **Tolerance**: Mechanisms, clinical implications
+• **Side Effects**: On-target vs off-target effects
+
+### 💊 **High-Yield Drug Classes**
+• **Cardiovascular**: ACE inhibitors, beta-blockers, diuretics
+• **CNS**: Antidepressants, antiepileptics, anesthetics
+• **Antimicrobials**: Antibiotics, antivirals, antifungals
+• **Endocrine**: Diabetes drugs, thyroid medications
+• **Cancer**: Chemotherapy mechanisms, side effects
+
+**Study Strategy**: Focus on mechanisms of action and major side effects!`;
+    }
+    
     if (lowerMessage.includes('pathology') || lowerMessage.includes('pathophysiology')) {
       return `Here's how to master **Pathology** for USMLE Step 1 and medical school:
 
