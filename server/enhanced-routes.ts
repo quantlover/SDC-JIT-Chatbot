@@ -243,6 +243,104 @@ CONTEXT HANDLING: If the user's message contains context like "The user previous
 Would you like me to focus on any specific subject area or study strategy?`;
     }
     
+    if (lowerMessage.includes('pathology') || lowerMessage.includes('pathophysiology')) {
+      return `Here's how to master **Pathology** for USMLE Step 1 and medical school:
+
+## 📚 **Core Pathology Study Approach**
+• **Understand Disease Mechanisms**: Focus on "how" and "why" diseases occur
+• **Link Structure to Function**: Connect anatomical changes to clinical symptoms
+• **Pattern Recognition**: Learn to identify key pathological patterns
+
+## 🎯 **Essential Pathology Resources**
+• **Pathoma by Dr. Sattar**: Gold standard video series + textbook
+• **Robbins Basic Pathology**: Comprehensive textbook reference
+• **First Aid Chapter**: High-yield facts and patterns
+• **UWorld Pathology Questions**: Practice application of concepts
+
+## 📖 **Study Strategy**
+• **Start with Pathoma**: Watch videos, then read corresponding chapters
+• **Focus on High-Yield Topics**: Inflammation, neoplasia, cardiovascular, respiratory
+• **Create Visual Associations**: Draw out disease processes and mechanisms
+• **Practice Questions Early**: Apply concepts through UWorld and NBME
+
+## 🔬 **CHM-Specific Resources**
+• M1 Pathology course materials on Canvas
+• Histology lab slides and virtual microscopy
+• Clinical correlation sessions
+• Academic Achievement tutoring for difficult concepts
+
+## ⚡ **High-Yield Pathology Topics**
+• Inflammation and tissue repair
+• Neoplasia (benign vs malignant)
+• Cardiovascular pathology
+• Respiratory pathology
+• Renal and GI pathology
+
+Would you like me to focus on any specific pathology topic or organ system?`;
+    }
+    
+    if (lowerMessage.includes('anatomy') || lowerMessage.includes('gross anatomy')) {
+      return `Here's your guide to mastering **Anatomy** for medical school and boards:
+
+## 🧠 **Anatomy Study Strategy**
+• **3D Visualization**: Use multiple resources to build spatial understanding
+• **Clinical Correlation**: Always connect anatomy to clinical relevance
+• **Active Learning**: Draw, label, and teach concepts to others
+• **Repetition**: Review frequently - anatomy requires memorization + understanding
+
+## 📚 **Essential Anatomy Resources**
+• **Netter's Atlas**: Beautiful illustrations and clinical correlations
+• **Gray's Anatomy**: Comprehensive reference textbook
+• **Complete Anatomy 3D**: Interactive digital atlas
+• **Anki Flashcards**: Spaced repetition for memorization
+
+## 🔬 **CHM Anatomy Resources**
+• Cadaveric dissection in anatomy lab
+• Prosected specimens and models
+• Canvas modules with labeled images
+• Peer tutoring through Academic Achievement
+
+## ⚡ **High-Yield Systems**
+• **Musculoskeletal**: Limbs, spine, joint anatomy
+• **Neuroanatomy**: Brain, spinal cord, cranial nerves
+• **Cardiovascular**: Heart, great vessels, circulation
+• **Respiratory**: Lungs, airways, thoracic cavity
+• **Abdomen**: GI organs, retroperitoneum
+
+Focus on understanding relationships between structures rather than just memorizing names!`;
+    }
+    
+    if (lowerMessage.includes('physiology') || lowerMessage.includes('pathophysiology')) {
+      return `Master **Physiology** with this strategic approach:
+
+## ⚡ **Physiology Study Method**
+• **Understand Normal First**: Master normal function before pathology
+• **Focus on Mechanisms**: Learn "how" systems work, not just "what"
+• **Integration**: Connect different organ systems and their interactions
+• **Problem-Solving**: Use physiology to reason through clinical scenarios
+
+## 📚 **Top Physiology Resources**
+• **Costanzo Physiology**: Excellent board review book
+• **Guyton & Hall**: Comprehensive textbook reference
+• **Board Review Series**: High-yield facts and concepts
+• **UWorld Physiology**: Practice questions with detailed explanations
+
+## 🔬 **CHM Physiology Resources**
+• M1 physiology course modules on Canvas
+• Interactive physiology simulations
+• Clinical Skills Center for applied learning
+• Study groups through learning societies
+
+## 🎯 **High-Yield Systems**
+• **Cardiovascular**: Heart function, blood pressure regulation
+• **Respiratory**: Gas exchange, ventilation control
+• **Renal**: Filtration, acid-base balance, fluid regulation
+• **Endocrine**: Hormone regulation and feedback loops
+• **Neurophysiology**: Action potentials, synaptic transmission
+
+Remember: Physiology is the foundation for understanding pathology and pharmacology!`;
+    }
+    
     if (lowerMessage.includes('learning society') || lowerMessage.includes('societies')) {
       return `CHM has four learning societies, each with a unique educational philosophy:
 
