@@ -51,9 +51,25 @@ const medicalKnowledgeBase = {
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
   // Check if the message is a test generation request
-  const testGenerationResult = await handleTestGenerationRequest(message);
-  if (testGenerationResult) {
-    return testGenerationResult;
+  try {
+    const testGenerationResult = await handleTestGenerationRequest(message);
+    if (testGenerationResult) {
+      return testGenerationResult;
+    }
+  } catch (error) {
+    console.log("Test generation failed, providing fallback response");
+    // Check if user is asking for a test/quiz
+    if (message.toLowerCase().includes('test') || message.toLowerCase().includes('quiz')) {
+      return `I'd love to help you create a test for that topic! However, I'm experiencing some technical difficulties with the test generation system right now.
+
+In the meantime, I can help you with:
+• **Study guidance** for your topic
+• **Key concepts** to focus on  
+• **Learning resources** and materials
+• **Practice questions** manually created
+
+What specific topic would you like to study? I can provide comprehensive information to help you prepare.`;
+    }
   }
 
   // Check for simple greetings or general help requests first
