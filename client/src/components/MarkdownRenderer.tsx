@@ -33,7 +33,13 @@ export function MarkdownRenderer({ content, className = "", onTagClick }: Markdo
       }
 
       // Headers
-      if (trimmedLine.startsWith('## ')) {
+      if (trimmedLine.startsWith('# ')) {
+        elements.push(
+          <h1 key={key++} className="text-xl font-bold text-primary mb-4 mt-4 first:mt-0">
+            {trimmedLine.substring(2)}
+          </h1>
+        );
+      } else if (trimmedLine.startsWith('## ')) {
         elements.push(
           <h2 key={key++} className="text-lg font-semibold text-primary mb-3 mt-4 first:mt-0">
             {trimmedLine.substring(3)}
@@ -87,8 +93,27 @@ export function MarkdownRenderer({ content, className = "", onTagClick }: Markdo
         });
 
         if (formattedElements.length > 0) {
+          // Special styling for different types of test content
+          const isAnswerChoice = trimmedLine.match(/^[A-D]\.\s/);
+          const isCorrectAnswer = trimmedLine.startsWith('**Correct Answer:**');
+          const isExplanation = trimmedLine.startsWith('**Explanation:**');
+          const isTopicOrObjective = trimmedLine.startsWith('**Topic:**') || trimmedLine.startsWith('**Learning Objective:**');
+          const isTimeOrScore = trimmedLine.startsWith('**Time Allowed:**') || trimmedLine.startsWith('**Passing Score:**') || trimmedLine.startsWith('**Questions:**');
+          
+          const className = isAnswerChoice 
+            ? "mb-1 leading-relaxed pl-3 py-1 hover:bg-primary/5 rounded transition-colors cursor-pointer border-l-2 border-transparent hover:border-primary/20"
+            : isCorrectAnswer
+            ? "font-semibold text-green-700 dark:text-green-400 mb-2 leading-relaxed bg-green-50 dark:bg-green-950/20 p-2 rounded"
+            : isExplanation
+            ? "text-muted-foreground mb-3 leading-relaxed italic bg-blue-50 dark:bg-blue-950/20 p-3 rounded border-l-4 border-blue-200 dark:border-blue-800"
+            : isTopicOrObjective
+            ? "text-xs text-muted-foreground mb-1 leading-relaxed font-medium"
+            : isTimeOrScore
+            ? "text-sm font-medium mb-1 leading-relaxed"
+            : "mb-2 leading-relaxed";
+            
           elements.push(
-            <p key={key++} className="mb-2 leading-relaxed">
+            <p key={key++} className={className}>
               {formattedElements}
             </p>
           );
