@@ -50,14 +50,18 @@ const medicalKnowledgeBase = {
 };
 
 async function generateEnhancedChatResponse(message: string, conversationHistory: any[] = []): Promise<string> {
+  console.log(`generateEnhancedChatResponse called with message: "${message}"`);
+  
   // Check if the message is a test generation request
   try {
+    console.log("Checking test generation request...");
     const testGenerationResult = await handleTestGenerationRequest(message);
+    console.log("Test generation result:", testGenerationResult ? "Found result" : "No result");
     if (testGenerationResult) {
       return testGenerationResult;
     }
   } catch (error) {
-    console.log("Test generation failed, providing fallback response");
+    console.log("Test generation failed, providing fallback response", error);
     // Check if user is asking for a test/quiz
     if (message.toLowerCase().includes('test') || message.toLowerCase().includes('quiz')) {
       return `I'd love to help you create a test for that topic! However, I'm experiencing some technical difficulties with the test generation system right now.
@@ -828,10 +832,14 @@ async function handleTestGenerationRequest(message: string): Promise<string | nu
   let detectedTopic = '';
   let detectedDifficulty: 'easy' | 'medium' | 'difficult' = 'medium';
   
+  console.log(`Checking message: "${lowerMessage}" for topics`);
+  
   // Find topic in message
   for (const topic of topicKeywords) {
+    console.log(`Checking if message contains: "${topic}"`);
     if (lowerMessage.includes(topic)) {
       detectedTopic = topic;
+      console.log(`Found topic: ${topic}`);
       break;
     }
   }
@@ -846,9 +854,12 @@ async function handleTestGenerationRequest(message: string): Promise<string | nu
   
   // Generate topic-based test if we detected a topic
   if (detectedTopic) {
-    const fallbackTest = generateTopicTest(detectedTopic, detectedDifficulty, 5);
-    if (fallbackTest) {
-      let testContent = `# 📝 **${fallbackTest.title}**
+    console.log(`Detected topic: ${detectedTopic}, difficulty: ${detectedDifficulty}`);
+    try {
+      const fallbackTest = generateTopicTest(detectedTopic, detectedDifficulty, 5);
+      console.log(`Generated test:`, fallbackTest ? 'Success' : 'Failed');
+      if (fallbackTest) {
+        let testContent = `# 📝 **${fallbackTest.title}**
 
 **Time Allowed:** ${fallbackTest.timeAllowed} minutes  
 **Passing Score:** ${fallbackTest.passingScore}%  
@@ -875,9 +886,12 @@ async function handleTestGenerationRequest(message: string): Promise<string | nu
         testContent += `**Explanation:** ${q.explanation}\n\n**Topic:** ${q.topic}  \n**Learning Objective:** ${q.learningObjective}\n\n---\n\n`;
       });
 
-      testContent += `*Assessment generated from CHM medical education curriculum. Practice these concepts and review explanations for optimal learning.*`;
+        testContent += `*Assessment generated from CHM medical education curriculum. Practice these concepts and review explanations for optimal learning.*`;
 
-      return testContent;
+        return testContent;
+      }
+    } catch (error) {
+      console.error('Error generating topic test:', error);
     }
   }
   
