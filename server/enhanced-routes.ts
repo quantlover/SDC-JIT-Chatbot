@@ -81,20 +81,39 @@ What would you like to know about CHM or your medical education?`;
     .join('\n');
   
   // For brief questions, use conversation context to understand intent
-  const isBriefQuestion = message.split(' ').length <= 4;
+  const isBriefQuestion = message.split(' ').length <= 5;
   let enhancedMessage = message;
   
-  if (isBriefQuestion && conversationContext) {
+  if (isBriefQuestion && recentMessages.length > 0) {
     // Extract key topics and context from recent conversation
     const lastAssistantMessage = recentMessages.filter(msg => msg.role === 'assistant').pop();
     const lastUserMessage = recentMessages.filter(msg => msg.role === 'user').pop();
     
-    if (lastAssistantMessage && lastUserMessage) {
-      enhancedMessage = `Context: The user previously asked "${lastUserMessage.content}" and I responded with information about ${lastAssistantMessage.content.substring(0, 200)}...
+    // Check for common brief follow-up patterns
+    const briefPatterns = [
+      /harder/i, /easier/i, /more/i, /another/i, /different/i, 
+      /next/i, /continue/i, /again/i, /explain/i, /tell me more/i
+    ];
+    
+    const isBriefFollowUp = briefPatterns.some(pattern => pattern.test(message));
+    
+    if ((isBriefFollowUp || isBriefQuestion) && lastAssistantMessage && lastUserMessage) {
+      // Extract key topics from previous conversation
+      const topicMatches = lastUserMessage.content.match(/(M1|M2|M3|MCE|LCE|week \d+|emergency|cardiology|neurology|surgery|pediatrics|psychiatry|medicine|quiz|test|exam)/gi);
+      const topics = topicMatches ? topicMatches.join(', ') : 'the previous topic';
       
-Current brief question: "${message}"
+      enhancedMessage = `CONTEXT: The user just asked "${lastUserMessage.content}" and I provided information about ${topics}. 
 
-Please understand this brief question in the context of our conversation and provide a relevant response. If they're asking for "harder quiz", "easier quiz", "more questions", etc., use the previous topic and difficulty context.`;
+CURRENT REQUEST: "${message}"
+
+This is a brief follow-up request. Based on the context:
+- If they want "harder quiz/questions" → Generate a harder quiz on ${topics}
+- If they want "easier quiz/questions" → Generate an easier quiz on ${topics} 
+- If they want "more questions" → Generate more questions about ${topics}
+- If they want "another quiz" → Generate a different quiz about ${topics}
+- If they want "explain more" → Provide more detailed explanation about ${topics}
+
+Please respond appropriately based on their brief request and the conversation context.`;
     }
   }
   

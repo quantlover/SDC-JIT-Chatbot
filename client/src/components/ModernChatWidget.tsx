@@ -52,8 +52,8 @@ export function ModernChatWidget() {
       return response.json() as Promise<ChatResponse>;
     },
     onSuccess: (data) => {
-      // Add both user and assistant messages to the conversation
-      setMessages(prev => [...prev, data.userMessage, data.assistantMessage]);
+      // Only add assistant message since user message already added
+      setMessages(prev => [...prev, data.assistantMessage]);
       setConversationId(data.conversation.id);
       scrollToBottom();
     },
@@ -109,6 +109,15 @@ How can I assist you today?`,
     if (!message.trim() || chatMutation.isPending) return;
 
     const userMessage = message.trim();
+    const tempUserMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: userMessage,
+      createdAt: new Date(),
+    };
+    
+    // Add user message immediately to show it
+    setMessages(prev => [...prev, tempUserMessage]);
     setMessage('');
     
     chatMutation.mutate(userMessage);
@@ -142,7 +151,7 @@ How can I assist you today?`,
           size="lg"
         >
           <MessageSquare className="h-8 w-8" />
-          <Badge className="absolute -top-1 -right-1 gradient-primary h-5 w-5 flex items-center justify-center text-xs font-bold text-white border-2 border-white rounded-full animate-pulse">
+          <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-red-500 h-5 w-5 flex items-center justify-center text-xs font-bold text-white border-2 border-white rounded-full animate-pulse">
             <Sparkles className="h-3 w-3" />
           </Badge>
         </Button>
