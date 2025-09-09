@@ -400,6 +400,206 @@ export const medicalTopicTestBanks = {
         learningObjective: 'Calculate GFR and interpret results'
       }
     ]
+  },
+  endocrine: {
+    easy: [
+      {
+        id: 'endo-easy-1',
+        question: 'Which gland is known as the "master gland"?',
+        type: 'multiple-choice' as const,
+        options: ['Thyroid', 'Pituitary', 'Adrenal', 'Pancreas'],
+        correctAnswer: 1,
+        explanation: 'The pituitary gland is called the master gland because it controls other endocrine glands.',
+        difficulty: 'easy' as const,
+        topic: 'Endocrine Overview',
+        learningObjective: 'Identify major endocrine glands and functions'
+      }
+    ],
+    medium: [
+      {
+        id: 'endo-med-1',
+        question: 'A patient presents with polyuria, polydipsia, and blood glucose of 300 mg/dL. What is the most likely diagnosis?',
+        type: 'multiple-choice' as const,
+        options: ['Type 1 diabetes', 'Type 2 diabetes', 'Diabetes insipidus', 'Hyperthyroidism'],
+        correctAnswer: 0,
+        explanation: 'Classic triad of polyuria, polydipsia, and hyperglycemia suggests diabetes mellitus, likely Type 1 with acute presentation.',
+        difficulty: 'medium' as const,
+        topic: 'Diabetes',
+        learningObjective: 'Recognize diabetes mellitus presentation'
+      }
+    ],
+    difficult: [
+      {
+        id: 'endo-hard-1',
+        question: 'Calculate insulin requirements for DKA treatment: Patient weighs 70kg with glucose 400mg/dL and ketones present.',
+        type: 'short-answer' as const,
+        correctAnswer: 'Initial: 0.1 units/kg/hr = 7 units/hr insulin infusion',
+        explanation: 'DKA treatment requires 0.1 units/kg/hr insulin infusion initially, with glucose and electrolyte monitoring.',
+        difficulty: 'difficult' as const,
+        topic: 'DKA Management',
+        learningObjective: 'Calculate insulin dosing for DKA'
+      }
+    ]
+  },
+  immunology: {
+    easy: [
+      {
+        id: 'immuno-easy-1',
+        question: 'Which cells are responsible for antibody production?',
+        type: 'multiple-choice' as const,
+        options: ['T cells', 'B cells', 'NK cells', 'Macrophages'],
+        correctAnswer: 1,
+        explanation: 'B cells differentiate into plasma cells that produce antibodies.',
+        difficulty: 'easy' as const,
+        topic: 'Adaptive Immunity',
+        learningObjective: 'Identify functions of immune cells'
+      }
+    ],
+    medium: [
+      {
+        id: 'immuno-med-1',
+        question: 'A patient develops hives and swelling after eating peanuts. What type of hypersensitivity is this?',
+        type: 'multiple-choice' as const,
+        options: ['Type I', 'Type II', 'Type III', 'Type IV'],
+        correctAnswer: 0,
+        explanation: 'Immediate allergic reactions with hives are Type I (IgE-mediated) hypersensitivity.',
+        difficulty: 'medium' as const,
+        topic: 'Hypersensitivity',
+        learningObjective: 'Classify hypersensitivity reactions'
+      }
+    ],
+    difficult: [
+      {
+        id: 'immuno-hard-1',
+        question: 'Explain the mechanism of molecular mimicry in autoimmune diseases with specific example.',
+        type: 'short-answer' as const,
+        correctAnswer: 'Cross-reactivity between pathogen and self-antigens, e.g., rheumatic fever after strep infection',
+        explanation: 'Molecular mimicry occurs when pathogen antigens resemble self-antigens, leading to autoimmune responses.',
+        difficulty: 'difficult' as const,
+        topic: 'Autoimmunity',
+        learningObjective: 'Explain mechanisms of autoimmune disease development'
+      }
+    ]
+  },
+  microbiology: {
+    easy: [
+      {
+        id: 'micro-easy-1',
+        question: 'What color do Gram-positive bacteria appear after Gram staining?',
+        type: 'multiple-choice' as const,
+        options: ['Pink/Red', 'Purple/Blue', 'Green', 'Yellow'],
+        correctAnswer: 1,
+        explanation: 'Gram-positive bacteria retain the crystal violet stain and appear purple/blue.',
+        difficulty: 'easy' as const,
+        topic: 'Bacterial Classification',
+        learningObjective: 'Understand Gram staining principles'
+      }
+    ],
+    medium: [
+      {
+        id: 'micro-med-1',
+        question: 'A patient has pneumonia with rusty-colored sputum. Gram stain shows Gram-positive diplococci. What is the most likely organism?',
+        type: 'multiple-choice' as const,
+        options: ['Streptococcus pneumoniae', 'Staphylococcus aureus', 'Haemophilus influenzae', 'Klebsiella pneumoniae'],
+        correctAnswer: 0,
+        explanation: 'S. pneumoniae classically presents with rusty sputum and appears as Gram-positive diplococci.',
+        difficulty: 'medium' as const,
+        topic: 'Respiratory Infections',
+        learningObjective: 'Correlate clinical and lab findings with pathogens'
+      }
+    ],
+    difficult: [
+      {
+        id: 'micro-hard-1',
+        question: 'Design an antibiotic regimen for MRSA pneumonia in a patient with penicillin allergy.',
+        type: 'short-answer' as const,
+        correctAnswer: 'Vancomycin or linezolid, avoid beta-lactams',
+        explanation: 'MRSA requires vancomycin or linezolid. Avoid all beta-lactams in penicillin-allergic patients.',
+        difficulty: 'difficult' as const,
+        topic: 'Antibiotic Therapy',
+        learningObjective: 'Design appropriate antibiotic regimens'
+      }
+    ]
+  },
+  biochemistry: {
+    easy: [
+      {
+        id: 'biochem-easy-1',
+        question: 'Which molecule stores energy in cells?',
+        type: 'multiple-choice' as const,
+        options: ['ADP', 'ATP', 'AMP', 'NAD+'],
+        correctAnswer: 1,
+        explanation: 'ATP (adenosine triphosphate) is the primary energy storage molecule in cells.',
+        difficulty: 'easy' as const,
+        topic: 'Energy Metabolism',
+        learningObjective: 'Identify energy-storing molecules'
+      }
+    ],
+    medium: [
+      {
+        id: 'biochem-med-1',
+        question: 'A patient has elevated lactate levels after exercise. What metabolic pathway is being used?',
+        type: 'multiple-choice' as const,
+        options: ['Aerobic respiration', 'Anaerobic glycolysis', 'Gluconeogenesis', 'Fatty acid oxidation'],
+        correctAnswer: 1,
+        explanation: 'Elevated lactate indicates anaerobic glycolysis is occurring due to insufficient oxygen.',
+        difficulty: 'medium' as const,
+        topic: 'Glycolysis',
+        learningObjective: 'Understand metabolic pathway regulation'
+      }
+    ],
+    difficult: [
+      {
+        id: 'biochem-hard-1',
+        question: 'Calculate net ATP yield from complete oxidation of one glucose molecule through glycolysis and TCA cycle.',
+        type: 'short-answer' as const,
+        correctAnswer: '30-32 ATP molecules',
+        explanation: 'Glycolysis yields 2 ATP, TCA cycle yields 2 ATP, electron transport yields ~26-28 ATP, total ~30-32 ATP.',
+        difficulty: 'difficult' as const,
+        topic: 'ATP Calculation',
+        learningObjective: 'Calculate energy yields from metabolic pathways'
+      }
+    ]
+  },
+  pharmacology: {
+    easy: [
+      {
+        id: 'pharm-easy-1',
+        question: 'What does ADME stand for in pharmacology?',
+        type: 'multiple-choice' as const,
+        options: ['Absorption, Distribution, Metabolism, Excretion', 'Action, Dose, Mechanism, Effect', 'Administration, Delivery, Modification, Elimination', 'Affinity, Duration, Magnitude, Efficacy'],
+        correctAnswer: 0,
+        explanation: 'ADME represents the four main pharmacokinetic processes: Absorption, Distribution, Metabolism, Excretion.',
+        difficulty: 'easy' as const,
+        topic: 'Pharmacokinetics',
+        learningObjective: 'Define basic pharmacokinetic principles'
+      }
+    ],
+    medium: [
+      {
+        id: 'pharm-med-1',
+        question: 'A patient on warfarin starts taking a CYP450 inducer. What happens to warfarin levels?',
+        type: 'multiple-choice' as const,
+        options: ['Increase', 'Decrease', 'No change', 'Unpredictable'],
+        correctAnswer: 1,
+        explanation: 'CYP450 inducers increase warfarin metabolism, decreasing warfarin levels and anticoagulation effect.',
+        difficulty: 'medium' as const,
+        topic: 'Drug Interactions',
+        learningObjective: 'Predict drug interaction effects'
+      }
+    ],
+    difficult: [
+      {
+        id: 'pharm-hard-1',
+        question: 'Calculate loading dose for digoxin: Target level 2 ng/mL, Vd = 7 L/kg, patient weighs 70 kg, bioavailability = 0.7.',
+        type: 'short-answer' as const,
+        correctAnswer: 'Loading dose = 1400 mcg',
+        explanation: 'Loading dose = (Target × Vd × Weight) / Bioavailability = (2 × 7 × 70) / 0.7 = 1400 mcg',
+        difficulty: 'difficult' as const,
+        topic: 'Dosing Calculations',
+        learningObjective: 'Calculate appropriate drug dosing'
+      }
+    ]
   }
 };
 
