@@ -37,11 +37,42 @@ export function ModernChatWidget() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(() => {
+    // Load conversation ID from localStorage on component mount
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('chatConversationId');
+    }
+    return null;
+  });
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Query to fetch conversation history
+  const { data: conversationData } = useQuery({
+    queryKey: ['conversation', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return null;
+      const response = await apiRequest('GET', `/api/conversations/${conversationId}`);
+      return response.json();
+    },
+    enabled: !!conversationId && isOpen,
+  });
+
+  // Load messages from conversation data
+  useEffect(() => {
+    if (conversationData?.messages) {
+      const formattedMessages = conversationData.messages.map((msg: any) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        createdAt: new Date(msg.createdAt),
+      }));
+      setMessages(formattedMessages);
+    }
+  }, [conversationData]);
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -52,9 +83,18 @@ export function ModernChatWidget() {
       return response.json() as Promise<ChatResponse>;
     },
     onSuccess: (data) => {
-      // Only add assistant message since user message already added
+      // Update conversation ID if new
+      if (!conversationId) {
+        setConversationId(data.conversation.id);
+        localStorage.setItem('chatConversationId', data.conversation.id);
+      }
+      
+      // Only add assistant message since user message was already added immediately
       setMessages(prev => [...prev, data.assistantMessage]);
-      setConversationId(data.conversation.id);
+      
+      // Invalidate conversation cache to refetch latest messages
+      queryClient.invalidateQueries({ queryKey: ['conversation', data.conversation.id] });
+      
       scrollToBottom();
     },
     onError: (error) => {
