@@ -50,21 +50,21 @@ export function ModernChatWidget() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query to fetch conversation history
-  const { data: conversationData } = useQuery({
-    queryKey: ['conversation', conversationId],
+  // Query to fetch conversation messages
+  const { data: messagesData } = useQuery({
+    queryKey: ['messages', conversationId],
     queryFn: async () => {
-      if (!conversationId) return null;
-      const response = await apiRequest('GET', `/api/conversations/${conversationId}`);
+      if (!conversationId) return [];
+      const response = await apiRequest('GET', `/api/conversations/${conversationId}/messages`);
       return response.json();
     },
     enabled: !!conversationId && isOpen,
   });
 
-  // Load messages from conversation data
+  // Load messages from backend data
   useEffect(() => {
-    if (conversationData?.messages) {
-      const formattedMessages = conversationData.messages.map((msg: any) => ({
+    if (messagesData && Array.isArray(messagesData)) {
+      const formattedMessages = messagesData.map((msg: any) => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,
@@ -72,7 +72,7 @@ export function ModernChatWidget() {
       }));
       setMessages(formattedMessages);
     }
-  }, [conversationData]);
+  }, [messagesData]);
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -92,8 +92,8 @@ export function ModernChatWidget() {
       // Only add assistant message since user message was already added immediately
       setMessages(prev => [...prev, data.assistantMessage]);
       
-      // Invalidate conversation cache to refetch latest messages
-      queryClient.invalidateQueries({ queryKey: ['conversation', data.conversation.id] });
+      // Invalidate messages cache to refetch latest messages
+      queryClient.invalidateQueries({ queryKey: ['messages', data.conversation.id] });
       
       scrollToBottom();
     },
@@ -120,9 +120,9 @@ export function ModernChatWidget() {
     }
   }, [isOpen, isMinimized]);
 
-  // Initialize with welcome message
+  // Initialize with welcome message only if no conversation history
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
+    if (isOpen && messages.length === 0 && !conversationId) {
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
@@ -143,7 +143,7 @@ How can I assist you today?`,
       };
       setMessages([welcomeMessage]);
     }
-  }, [isOpen, messages.length]);
+  }, [isOpen, messages.length, conversationId]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || chatMutation.isPending) return;
