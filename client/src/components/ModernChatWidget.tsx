@@ -89,10 +89,7 @@ export function ModernChatWidget() {
         localStorage.setItem('chatConversationId', data.conversation.id);
       }
       
-      // Only add assistant message since user message was already added immediately
-      setMessages(prev => [...prev, data.assistantMessage]);
-      
-      // Invalidate messages cache to refetch latest messages
+      // Invalidate messages cache to refetch latest messages with both user and assistant messages
       queryClient.invalidateQueries({ queryKey: ['messages', data.conversation.id] });
       
       scrollToBottom();
@@ -149,17 +146,9 @@ How can I assist you today?`,
     if (!message.trim() || chatMutation.isPending) return;
 
     const userMessage = message.trim();
-    const tempUserMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: userMessage,
-      createdAt: new Date(),
-    };
-    
-    // Add user message immediately to show it
-    setMessages(prev => [...prev, tempUserMessage]);
     setMessage('');
     
+    // Don't add to local state - let the backend response handle both messages
     chatMutation.mutate(userMessage);
   };
 
@@ -284,12 +273,12 @@ How can I assist you today?`,
                 </div>
               ))}
               
-              {/* Typing Indicator */}
+              {/* Processing Indicator */}
               {chatMutation.isPending && (
                 <div className="flex justify-start">
                   <div className="max-w-[85%] p-3 rounded-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-border/20">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                      <span className="text-sm text-muted-foreground">Processing your message...</span>
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                         <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
