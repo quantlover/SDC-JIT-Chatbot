@@ -98,6 +98,12 @@ export function EnhancedChatWidget() {
       setMessage('');
       setUploadedFiles([]);
       
+      // Replace temporary user message with real one and add assistant message
+      setMessages(prev => {
+        const withoutTemp = prev.filter(msg => !msg.id.startsWith('temp-'));
+        return [...withoutTemp, data.userMessage, data.assistantMessage];
+      });
+      
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', data.conversation.id, 'messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users', userId, 'conversations'] });
@@ -108,6 +114,9 @@ export function EnhancedChatWidget() {
       });
     },
     onError: (error) => {
+      // Remove temporary user message on error
+      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
+      
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -165,9 +174,21 @@ export function EnhancedChatWidget() {
     if (!message.trim() && uploadedFiles.length === 0) return;
 
     const messageType = uploadedFiles.length > 0 ? 'file_upload' : 'chat';
+    const messageContent = message || 'Shared files';
+
+    // Add user message to local state immediately for better UX
+    const tempUserMessage: Message = {
+      id: `temp-${Date.now()}`,
+      role: 'user',
+      content: messageContent,
+      messageType,
+      fileAttachments: uploadedFiles,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, tempUserMessage]);
 
     chatMutation.mutate({
-      message: message || 'Shared files',
+      message: messageContent,
       conversationId: currentConversationId,
       userId,
       messageType,
@@ -200,6 +221,18 @@ export function EnhancedChatWidget() {
   const handleTagClick = (tag: string) => {
     const tagQuery = `Tell me about CHM ${tag} topics`;
     setMessage(tagQuery);
+    
+    // Add user message to local state immediately for better UX
+    const tempUserMessage: Message = {
+      id: `temp-${Date.now()}`,
+      role: 'user',
+      content: tagQuery,
+      messageType: 'chat',
+      fileAttachments: [],
+      createdAt: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, tempUserMessage]);
+    
     chatMutation.mutate({
       message: tagQuery,
       conversationId: currentConversationId,

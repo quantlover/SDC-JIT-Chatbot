@@ -89,12 +89,21 @@ export function ModernChatWidget() {
         localStorage.setItem('chatConversationId', data.conversation.id);
       }
       
-      // Invalidate messages cache to refetch latest messages with both user and assistant messages
+      // Replace temporary user message with real one and add assistant message
+      setMessages(prev => {
+        const withoutTemp = prev.filter(msg => !msg.id.startsWith('temp-'));
+        return [...withoutTemp, data.userMessage, data.assistantMessage];
+      });
+      
+      // Invalidate messages cache to refetch latest messages
       queryClient.invalidateQueries({ queryKey: ['messages', data.conversation.id] });
       
       scrollToBottom();
     },
     onError: (error) => {
+      // Remove temporary user message on error
+      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
+      
       toast({
         title: "Connection Error",
         description: "I'm having trouble connecting right now. Please try again.",
@@ -148,7 +157,15 @@ How can I assist you today?`,
     const userMessage = message.trim();
     setMessage('');
     
-    // Don't add to local state - let the backend response handle both messages
+    // Add user message to local state immediately for better UX
+    const tempUserMessage: Message = {
+      id: `temp-${Date.now()}`,
+      role: 'user',
+      content: userMessage,
+      createdAt: new Date(),
+    };
+    setMessages(prev => [...prev, tempUserMessage]);
+    
     chatMutation.mutate(userMessage);
   };
 
@@ -173,17 +190,34 @@ How can I assist you today?`,
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
+      <div className="fixed bottom-6 right-6 z-50 select-none">
+        <button
+          aria-label="Open CHM AI Assistant"
           onClick={() => setIsOpen(true)}
-          className="floating-button gradient-primary text-white rounded-full w-16 h-16 p-0 hover:scale-110 transition-all duration-300"
-          size="lg"
+          className="group relative w-16 h-24 transition-transform hover:scale-105 focus:outline-none"
         >
-          <MessageSquare className="h-8 w-8" />
-          <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-red-500 h-5 w-5 flex items-center justify-center text-xs font-bold text-white border-2 border-white rounded-full animate-pulse">
-            <Sparkles className="h-3 w-3" />
+          {/* Sparty body - MSU green */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-green-600 to-green-700 shadow-xl" />
+          {/* Sparty head */}
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-b from-green-500 to-green-600 border-2 border-green-400 shadow-md flex items-center justify-center">
+            {/* Sparty eyes */}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-white group-hover:animate-pulse transition-all" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white group-hover:animate-pulse transition-all" />
+            </div>
+          </div>
+          {/* Sparty helmet/hat */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-8 h-3 bg-gradient-to-b from-green-400 to-green-500 rounded-t-full" />
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-6 h-2 bg-green-300 rounded-t-full" />
+          {/* MSU "S" on body */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-white font-bold text-lg drop-shadow-md">S</span>
+          </div>
+          {/* Online badge */}
+          <Badge className="absolute -top-2 -right-2 bg-green-500 text-white h-5 min-w-5 px-1 flex items-center justify-center text-[10px] font-bold border-2 border-white rounded-full">
+            on
           </Badge>
-        </Button>
+        </button>
       </div>
     );
   }

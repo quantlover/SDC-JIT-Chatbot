@@ -73,11 +73,18 @@ export default function ChatWidget() {
       return response.json() as Promise<ChatResponse>;
     },
     onSuccess: (data) => {
-      setMessages(prev => [...prev, data.userMessage, data.assistantMessage]);
+      // Replace temporary user message with real one and add assistant message
+      setMessages(prev => {
+        const withoutTemp = prev.filter(msg => !msg.id.startsWith('temp-'));
+        return [...withoutTemp, data.userMessage, data.assistantMessage];
+      });
       setConversationId(data.conversationId);
       scrollToBottom();
     },
     onError: (error) => {
+      // Remove temporary user message on error
+      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
+      
       toast({
         title: "Connection Error",
         description: "I'm having trouble connecting right now. Please try again or browse the resources section.",
@@ -124,6 +131,15 @@ export default function ChatWidget() {
     if (inputRef.current) {
       inputRef.current.style.height = 'auto';
     }
+
+    // Add user message to local state immediately for better UX
+    const tempUserMessage: Message = {
+      id: `temp-${Date.now()}`,
+      role: 'user',
+      content: message,
+      createdAt: new Date(),
+    };
+    setMessages(prev => [...prev, tempUserMessage]);
 
     chatMutation.mutate(message);
   };
@@ -175,25 +191,40 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chat Toggle Button */}
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`rounded-full p-4 shadow-lg transition-all duration-300 hover:shadow-xl ${
-          isOpen 
-            ? 'bg-red-600 hover:bg-red-700' 
-            : 'bg-primary hover:bg-primary/90'
-        }`}
-        size="lg"
-      >
-        {isOpen ? (
+      {!isOpen ? (
+        <button
+          aria-label="Open CHM AI Assistant"
+          onClick={() => setIsOpen(true)}
+          className="group relative w-16 h-24 transition-transform hover:scale-105 focus:outline-none"
+        >
+          {/* Sparty body - MSU green */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-green-600 to-green-700 shadow-xl" />
+          {/* Sparty head */}
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-b from-green-500 to-green-600 border-2 border-green-400 shadow-md flex items-center justify-center">
+            {/* Sparty eyes */}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-white group-hover:animate-pulse transition-all" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white group-hover:animate-pulse transition-all" />
+            </div>
+          </div>
+          {/* Sparty helmet/hat */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-8 h-3 bg-gradient-to-b from-green-400 to-green-500 rounded-t-full" />
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-6 h-2 bg-green-300 rounded-t-full" />
+          {/* MSU "S" on body */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-white font-bold text-lg drop-shadow-md">S</span>
+          </div>
+          <Badge className="absolute -top-2 -right-2 bg-green-500 text-white h-5 min-w-5 px-1 flex items-center justify-center text-[10px] font-bold border-2 border-white rounded-full">AI</Badge>
+        </button>
+      ) : (
+        <Button
+          onClick={() => setIsOpen(false)}
+          className="rounded-full p-4 shadow-lg transition-all duration-300 hover:shadow-xl bg-red-600 hover:bg-red-700"
+          size="lg"
+        >
           <X className="h-6 w-6" />
-        ) : (
-          <MessageCircle className="h-6 w-6" />
-        )}
-        <Badge className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground h-6 w-6 flex items-center justify-center text-xs font-semibold">
-          AI
-        </Badge>
-      </Button>
-
+        </Button>
+      )}
       {/* Chat Window */}
       {isOpen && (
         <Card className="absolute bottom-16 right-0 w-96 max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-6rem)] shadow-2xl animate-slide-up flex flex-col">

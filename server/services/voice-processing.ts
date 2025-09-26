@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { promises as fs } from 'fs';
+import { createReadStream } from 'fs';
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || "default_key"
@@ -24,13 +24,10 @@ export async function transcribeAudio(audioPath: string): Promise<VoiceProcessin
       throw new Error('OpenAI API key not configured for voice processing');
     }
 
-    const audioBuffer = await fs.readFile(audioPath);
-    const audioFile = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' });
-
     const transcription = await openai.audio.transcriptions.create({
-      file: audioFile,
+      file: createReadStream(audioPath) as unknown as File,
       model: "whisper-1",
-      language: "en", // Can be made dynamic
+      language: "en",
       response_format: "verbose_json",
     });
 
